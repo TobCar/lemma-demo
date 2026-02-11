@@ -262,7 +262,7 @@ export function OwnershipStep() {
           </div>
         </div>
 
-        <div className="nav-bar">
+        <div className="onboarding-button-row">
           <Button
             variant="outline"
             onClick={handleCancelAdding}
@@ -370,7 +370,7 @@ export function OwnershipStep() {
         </span>
       </label>
 
-      <div className="nav-bar">
+      <div className="onboarding-button-row">
         <Button
           variant="outline"
           onClick={() => setCurrentStep(3)}

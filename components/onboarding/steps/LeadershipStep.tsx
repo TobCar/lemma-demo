@@ -243,7 +243,7 @@ export function LeadershipStep() {
         </label>
       </div>
 
-      <div className="nav-bar">
+      <div className="onboarding-button-row">
         <Button
           variant="outline"
           onClick={() => setCurrentStep(2)}

@@ -6,8 +6,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { US_STATES } from "@/data/usStates";
 import { HEALTHCARE_NAICS_CODES } from "@/data/naicsCodes";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { CreateLegalEntityRequest } from "@/types/onboarding";
 
 export function ReviewStep() {
   const {
@@ -22,6 +24,7 @@ export function ReviewStep() {
   const [termsAccepted, setTermsAccepted] = useState(
     identityVerification.termsAccepted,
   );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -50,10 +53,45 @@ export function ReviewStep() {
   const handleSubmit = async () => {
     if (!termsAccepted) return;
 
+    setError(null);
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsComplete(true);
+
+    try {
+      const orgType = ORGANIZATION_TYPES.find(
+        (o) => o.value === businessProfile.organizationType,
+      );
+      const npi =
+        businessProfile.npiType === "type1"
+          ? businessProfile.individualNpi
+          : businessProfile.practiceNpi;
+
+      const body: CreateLegalEntityRequest = {
+        name: businessProfile.legalBusinessName,
+        website: businessProfile.website,
+        businessPhone: businessProfile.businessPhone,
+        structure: orgType?.value ?? businessProfile.organizationType,
+        npi,
+        naicsCode: businessProfile.naicsCode,
+        ipAddress: identityVerification.termsIpAddress,
+      };
+
+      const response = await fetch("/api/legal-entities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      setIsComplete(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const leader = owners.find((o) => o.prongs.includes("control")) || owners[0];
@@ -75,7 +113,11 @@ export function ReviewStep() {
   };
 
   const getTypeLabel = (code: string) => {
-    return HEALTHCARE_NAICS_CODES.find((t) => t.code === code)?.label || code || "\u2014";
+    return (
+      HEALTHCARE_NAICS_CODES.find((t) => t.code === code)?.label ||
+      code ||
+      "\u2014"
+    );
   };
 
   const getStructureLabel = (value: string) => {
@@ -263,7 +305,6 @@ export function ReviewStep() {
 
         <label className="checkbox-label">
           <Checkbox
-
             checked={termsAccepted}
             onCheckedChange={handleTermsChange}
           />
@@ -271,33 +312,43 @@ export function ReviewStep() {
         </label>
       </div>
 
-      <div className="nav-bar">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentStep(4)}
-          disabled={isSubmitting}
-          className="btn-secondary"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!termsAccepted || isSubmitting}
-          className="btn-primary"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            <>
-              Create My Account
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </>
-          )}
-        </Button>
+      <div className="onboarding-button-row flex-col items-stretch gap-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <p>Something went wrong on our end! Please contact our team.</p>
+            </AlertDescription>
+          </Alert>
+        )}
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep(4)}
+            disabled={isSubmitting}
+            className="btn-secondary"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!termsAccepted || isSubmitting}
+            className="btn-primary"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              <>
+                Create My Account
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

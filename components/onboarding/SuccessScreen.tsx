@@ -1,15 +1,11 @@
-import { CheckCircle2, Clock, ArrowRight } from "lucide-react";
+import { Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function SuccessScreen() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-8">
+    <div className="bg-background justify-center p-8">
       <div className="max-w-md w-full text-center animate-fade-in">
-        {/* Success icon */}
-        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-8 h-8 text-primary" />
-        </div>
-
         {/* Title */}
         <h1 className="text-[28px] font-medium text-foreground tracking-tight mb-2">
           Application Submitted
@@ -78,9 +74,15 @@ export function SuccessScreen() {
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
-          <Button variant="outline" className="btn-secondary w-full h-12">
-            Return to Dashboard
-            <ArrowRight className="w-4 h-4 ml-2" />
+          <Button
+            variant="outline"
+            className="btn-secondary w-full h-12"
+            asChild
+          >
+            <Link href="/">
+              Explore the Dashboard
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
           </Button>
         </div>
       </div>

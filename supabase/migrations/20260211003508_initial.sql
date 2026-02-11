@@ -32,7 +32,7 @@ alter table "public"."legal_entity_members" enable row level security;
 
 
   create table "public"."profiles" (
-    "id" uuid not null,
+    "user_id" uuid not null,
     "created_at" timestamp with time zone not null default now()
       );
 
@@ -40,7 +40,7 @@ alter table "public"."legal_entity_members" enable row level security;
 alter table "public"."profiles" enable row level security;
 
 
-  create table "public"."terms_acceptances" (
+  create table "public"."term_acceptances" (
     "id" uuid not null default gen_random_uuid(),
     "created_at" timestamp with time zone not null default now(),
     "legal_entity_id" uuid not null,
@@ -49,7 +49,7 @@ alter table "public"."profiles" enable row level security;
       );
 
 
-alter table "public"."terms_acceptances" enable row level security;
+alter table "public"."term_acceptances" enable row level security;
 
 CREATE INDEX legal_entities_increase_entity_id_idx ON public.legal_entities USING btree (increase_entity_id);
 
@@ -63,9 +63,9 @@ CREATE UNIQUE INDEX legal_entity_members_pkey ON public.legal_entity_members USI
 
 CREATE INDEX legal_entity_members_user_id_idx ON public.legal_entity_members USING btree (user_id);
 
-CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id);
+CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (user_id);
 
-CREATE UNIQUE INDEX terms_acceptances_pkey ON public.terms_acceptances USING btree (id);
+CREATE UNIQUE INDEX term_acceptances_pkey ON public.term_acceptances USING btree (id);
 
 alter table "public"."legal_entities" add constraint "legal_entities_pkey" PRIMARY KEY using index "legal_entities_pkey";
 
@@ -73,9 +73,9 @@ alter table "public"."legal_entity_members" add constraint "legal_entity_members
 
 alter table "public"."profiles" add constraint "profiles_pkey" PRIMARY KEY using index "profiles_pkey";
 
-alter table "public"."terms_acceptances" add constraint "terms_acceptances_pkey" PRIMARY KEY using index "terms_acceptances_pkey";
+alter table "public"."term_acceptances" add constraint "term_acceptances_pkey" PRIMARY KEY using index "term_acceptances_pkey";
 
-alter table "public"."legal_entities" add constraint "legal_entities_structure_check" CHECK ((structure = ANY (ARRAY['corporation'::text, 'llc'::text, 'partnership'::text, 'sole_proprietorship'::text, 'nonprofit'::text, 'fqhc'::text, 'government'::text]))) not valid;
+alter table "public"."legal_entities" add constraint "legal_entities_structure_check" CHECK ((structure = ANY (ARRAY['fqhc'::text, 'govt'::text, 'professional_corporation'::text, 'professional_llc'::text, 'llc'::text, 'partnership'::text, 'sole_prop'::text, 'mso'::text, 'nonprofit'::text]))) not valid;
 
 alter table "public"."legal_entities" validate constraint "legal_entities_structure_check";
 
@@ -93,17 +93,17 @@ alter table "public"."legal_entity_members" add constraint "legal_entity_members
 
 alter table "public"."legal_entity_members" validate constraint "legal_entity_members_user_id_fkey";
 
-alter table "public"."profiles" add constraint "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE RESTRICT not valid;
+alter table "public"."profiles" add constraint "profiles_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE RESTRICT not valid;
 
-alter table "public"."profiles" validate constraint "profiles_id_fkey";
+alter table "public"."profiles" validate constraint "profiles_user_id_fkey";
 
-alter table "public"."terms_acceptances" add constraint "terms_acceptances_legal_entity_id_fkey" FOREIGN KEY (legal_entity_id) REFERENCES public.legal_entities(id) ON DELETE CASCADE not valid;
+alter table "public"."term_acceptances" add constraint "term_acceptances_legal_entity_id_fkey" FOREIGN KEY (legal_entity_id) REFERENCES public.legal_entities(id) ON DELETE CASCADE not valid;
 
-alter table "public"."terms_acceptances" validate constraint "terms_acceptances_legal_entity_id_fkey";
+alter table "public"."term_acceptances" validate constraint "term_acceptances_legal_entity_id_fkey";
 
-alter table "public"."terms_acceptances" add constraint "terms_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE RESTRICT not valid;
+alter table "public"."term_acceptances" add constraint "term_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE RESTRICT not valid;
 
-alter table "public"."terms_acceptances" validate constraint "terms_acceptances_user_id_fkey";
+alter table "public"."term_acceptances" validate constraint "term_acceptances_user_id_fkey";
 
 set check_function_bodies = off;
 
@@ -114,7 +114,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SET search_path TO ''
 AS $function$
 begin
-  insert into "public"."profiles" ("id")
+  insert into "public"."profiles" ("user_id")
   values (new.id);
   return new;
 end;
@@ -295,51 +295,51 @@ grant truncate on table "public"."profiles" to "service_role";
 
 grant update on table "public"."profiles" to "service_role";
 
-grant delete on table "public"."terms_acceptances" to "anon";
+grant delete on table "public"."term_acceptances" to "anon";
 
-grant insert on table "public"."terms_acceptances" to "anon";
+grant insert on table "public"."term_acceptances" to "anon";
 
-grant references on table "public"."terms_acceptances" to "anon";
+grant references on table "public"."term_acceptances" to "anon";
 
-grant select on table "public"."terms_acceptances" to "anon";
+grant select on table "public"."term_acceptances" to "anon";
 
-grant trigger on table "public"."terms_acceptances" to "anon";
+grant trigger on table "public"."term_acceptances" to "anon";
 
-grant truncate on table "public"."terms_acceptances" to "anon";
+grant truncate on table "public"."term_acceptances" to "anon";
 
-grant update on table "public"."terms_acceptances" to "anon";
+grant update on table "public"."term_acceptances" to "anon";
 
-grant delete on table "public"."terms_acceptances" to "authenticated";
+grant delete on table "public"."term_acceptances" to "authenticated";
 
-grant insert on table "public"."terms_acceptances" to "authenticated";
+grant insert on table "public"."term_acceptances" to "authenticated";
 
-grant references on table "public"."terms_acceptances" to "authenticated";
+grant references on table "public"."term_acceptances" to "authenticated";
 
-grant select on table "public"."terms_acceptances" to "authenticated";
+grant select on table "public"."term_acceptances" to "authenticated";
 
-grant trigger on table "public"."terms_acceptances" to "authenticated";
+grant trigger on table "public"."term_acceptances" to "authenticated";
 
-grant truncate on table "public"."terms_acceptances" to "authenticated";
+grant truncate on table "public"."term_acceptances" to "authenticated";
 
-grant update on table "public"."terms_acceptances" to "authenticated";
+grant update on table "public"."term_acceptances" to "authenticated";
 
-grant delete on table "public"."terms_acceptances" to "service_role";
+grant delete on table "public"."term_acceptances" to "service_role";
 
-grant insert on table "public"."terms_acceptances" to "service_role";
+grant insert on table "public"."term_acceptances" to "service_role";
 
-grant references on table "public"."terms_acceptances" to "service_role";
+grant references on table "public"."term_acceptances" to "service_role";
 
-grant select on table "public"."terms_acceptances" to "service_role";
+grant select on table "public"."term_acceptances" to "service_role";
 
-grant trigger on table "public"."terms_acceptances" to "service_role";
+grant trigger on table "public"."term_acceptances" to "service_role";
 
-grant truncate on table "public"."terms_acceptances" to "service_role";
+grant truncate on table "public"."term_acceptances" to "service_role";
 
-grant update on table "public"."terms_acceptances" to "service_role";
+grant update on table "public"."term_acceptances" to "service_role";
 
 CREATE TRIGGER handle_updated_at BEFORE UPDATE ON public.legal_entities FOR EACH ROW EXECUTE FUNCTION extensions.moddatetime('updated_at');
 
-CREATE TRIGGER handle_user_id BEFORE INSERT ON public.terms_acceptances FOR EACH ROW EXECUTE FUNCTION public.set_auth_user_id();
+CREATE TRIGGER handle_user_id BEFORE INSERT ON public.term_acceptances FOR EACH ROW EXECUTE FUNCTION public.set_auth_user_id();
 
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 

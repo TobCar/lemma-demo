@@ -2,8 +2,10 @@
 
 // Organization type definitions for healthcare legal structures
 type OrganizationStructure =
-  | "corporation"
+  | "professional_corporation"
+  | "professional_llc"
   | "llc"
+  | "mso"
   | "non_profit"
   | "natural_person"
   | "government_authority"
@@ -76,4 +78,14 @@ export interface OnboardingFormData {
   businessProfile: BusinessProfileData;
   owners: OwnerData[];
   identityVerification: IdentityVerificationData;
+}
+
+export interface CreateLegalEntityRequest {
+  name: string;
+  website: string;
+  businessPhone: string;
+  structure: string;
+  npi: string;
+  naicsCode: string;
+  ipAddress: string;
 }

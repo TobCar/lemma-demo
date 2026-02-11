@@ -158,7 +158,7 @@ export function OrganisationStep3() {
         />
       </div>
 
-      <div className="nav-bar">
+      <div className="onboarding-button-row">
         <Button
           variant="outline"
           onClick={() => setCurrentStep(1)}

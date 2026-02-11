@@ -296,7 +296,7 @@ White cards, soft gray background, dark charcoal text, teal accents.
     @apply hover:text-foreground transition-colors cursor-pointer;
   }
 
-  .nav-bar {
+  .onboarding-button-row {
     @apply flex justify-between items-center pt-8 mt-8 border-t border-border;
   }
 

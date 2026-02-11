@@ -1,4 +1,3 @@
--- 01_functions.sql
 -- Helper functions and extensions used across the schema:
 --   1. rls_auto_enable()        -- event trigger: auto-enable RLS on every new public table
 --   2. moddatetime extension    -- auto-set updated_at on row update

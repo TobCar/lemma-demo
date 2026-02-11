@@ -79,7 +79,7 @@ export function OrganisationStep1() {
   const selectedStructure =
     availableOrgTypes.find(
       (o) => o.value === businessProfile.organizationType,
-    ) || availableOrgTypes.find((o) => o.value === "pc");
+    ) || availableOrgTypes.find((o) => o.value === "professional_corporation");
 
   return (
     <div className="space-y-7">
@@ -254,7 +254,7 @@ export function OrganisationStep1() {
         </Popover>
       </div>
 
-      <div className="nav-bar">
+      <div className="onboarding-button-row">
         <Button
           variant="ghost"
           onClick={() => setCurrentStep(1)}

@@ -2,15 +2,15 @@ import { OrganizationType } from "@/types/onboarding";
 
 export const ORGANIZATION_TYPES: OrganizationType[] = [
   {
-    value: "pc",
+    value: "professional_corporation",
     label: "Professional Corporation (PC)",
-    structure: "corporation",
+    structure: "professional_corporation",
     logicBranch: "standard_kyb",
   },
   {
-    value: "pllc",
+    value: "professional_llc",
     label: "Professional LLC (PLLC)",
-    structure: "llc",
+    structure: "professional_llc",
     logicBranch: "standard_kyb",
     restrictedStates: ["CA", "NY"],
   },
@@ -30,7 +30,7 @@ export const ORGANIZATION_TYPES: OrganizationType[] = [
   {
     value: "mso",
     label: "Management Services Org (MSO)",
-    structure: "corporation",
+    structure: "mso",
     logicBranch: "standard_kyb",
   },
   {
@@ -58,3 +58,5 @@ export const ORGANIZATION_TYPES: OrganizationType[] = [
     logicBranch: "standard_kyb",
   },
 ];
+
+export const VALID_STRUCTURES = new Set(ORGANIZATION_TYPES.map((o) => o.value));
