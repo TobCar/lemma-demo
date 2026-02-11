@@ -167,3 +167,164 @@ White cards, soft gray background, dark charcoal text, teal accents.
 *:focus-visible {
   @apply outline-none ring-2 ring-accent/50 ring-offset-2 ring-offset-background;
 }
+
+/* ── Onboarding Flow Styles ── */
+
+@layer components {
+  .form-field {
+    @apply space-y-2;
+  }
+
+  .form-field label,
+  .form-field > [class*="Label"] {
+    @apply text-[13px] font-medium text-foreground;
+  }
+
+  .form-input {
+    @apply h-11 bg-card border border-border rounded-lg px-3.5;
+    @apply text-[15px] text-foreground;
+    @apply transition-all duration-150;
+    @apply focus:border-accent/50 focus:ring-2 focus:ring-accent/20;
+    @apply placeholder:text-muted-foreground/50;
+  }
+
+  .form-input:hover:not(:focus) {
+    @apply border-border/80;
+  }
+
+  .form-select-trigger {
+    @apply h-11 bg-card border border-border rounded-lg px-3.5;
+    @apply text-[15px];
+    @apply transition-all duration-150;
+    @apply hover:border-border/80;
+    @apply focus:border-accent/50 focus:ring-2 focus:ring-accent/20;
+  }
+
+  .onboarding-header {
+    @apply text-[28px] font-medium text-foreground leading-tight tracking-tight;
+  }
+
+  .onboarding-subheader {
+    @apply text-[15px] text-muted-foreground mt-2 leading-relaxed;
+  }
+
+  .review-section {
+    @apply space-y-1;
+  }
+
+  .review-section-title {
+    @apply text-[13px] font-medium text-muted-foreground uppercase tracking-wider mb-4;
+  }
+
+  .review-row {
+    @apply flex justify-between items-start py-3 border-b border-border/60 last:border-0;
+  }
+
+  .review-label {
+    @apply text-[14px] text-muted-foreground;
+  }
+
+  .review-value {
+    @apply text-[14px] text-foreground text-right;
+  }
+
+  .progress-track {
+    @apply h-1 bg-muted rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-accent transition-all duration-500 ease-out rounded-full;
+  }
+
+  .btn-primary {
+    @apply h-11 px-6 bg-primary text-primary-foreground rounded-lg;
+    @apply text-[14px] font-medium;
+    @apply transition-all duration-150;
+    @apply hover:bg-primary/90;
+    @apply focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  .btn-secondary {
+    @apply h-11 px-6 bg-secondary border border-border text-foreground rounded-lg;
+    @apply text-[14px] font-medium;
+    @apply transition-all duration-150;
+    @apply hover:bg-muted hover:border-muted;
+  }
+
+  .btn-ghost {
+    @apply h-11 px-4 bg-transparent text-muted-foreground rounded-lg;
+    @apply text-[14px] font-medium;
+    @apply transition-all duration-150;
+    @apply hover:text-foreground hover:bg-muted/50;
+  }
+
+  .address-grid {
+    @apply grid grid-cols-6 gap-3;
+  }
+
+  .address-grid .city {
+    @apply col-span-2;
+  }
+
+  .address-grid .state {
+    @apply col-span-2;
+  }
+
+  .address-grid .zip {
+    @apply col-span-2;
+  }
+
+  .masked-input {
+    @apply font-mono tracking-wide;
+  }
+
+  .checkbox-label {
+    @apply flex items-start gap-3 cursor-pointer;
+  }
+
+  .checkbox-label > button[role="checkbox"],
+  .checkbox-label > [data-state] {
+    @apply flex-shrink-0 mt-0.5;
+  }
+
+  .checkbox-label span {
+    @apply text-[14px] text-foreground leading-relaxed;
+  }
+
+  .upload-link {
+    @apply inline-flex items-center gap-2 text-[14px] text-muted-foreground;
+    @apply hover:text-foreground transition-colors cursor-pointer;
+  }
+
+  .nav-bar {
+    @apply flex justify-between items-center pt-8 mt-8 border-t border-border;
+  }
+
+  .trust-signal {
+    @apply flex items-start gap-2 text-[13px] text-muted-foreground bg-muted/50 rounded-lg px-3 py-2.5;
+  }
+
+  .trust-signal svg {
+    @apply w-4 h-4 mt-0.5 flex-shrink-0 text-accent;
+  }
+
+  .link-accent {
+    @apply text-accent hover:text-accent/80 transition-colors;
+  }
+}
+
+/* Onboarding animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
