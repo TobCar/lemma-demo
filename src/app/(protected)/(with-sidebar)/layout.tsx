@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/sonner";
@@ -11,7 +12,11 @@ export default function ProtectedLayout({
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background">
-        <Sidebar />
+        {/* Suspense needed: usePathname() is a dynamic API that Next.js
+            requires inside a Suspense boundary for partial prerendering */}
+        <Suspense>
+          <Sidebar />
+        </Suspense>
         <div className="ml-60">
           <Header />
           <main className="p-6">{children}</main>
