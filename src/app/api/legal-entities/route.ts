@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { safeErrorResponse } from "@/lib/api/errors";
 import { fieldsToSchema, zodEmail, zodAddress } from "@/lib/zod";
-import { profileFields } from "@/data/onboarding/new-organisation/profile";
-import { detailsOrgNpiField } from "@/data/onboarding/new-organisation/details";
-import { contactFields } from "@/data/onboarding/new-organisation/contact";
+import { profileFields } from "@/data/onboarding/new-organization/profile";
+import { detailsOrgNpiField } from "@/data/onboarding/new-organization/details";
+import { contactFields } from "@/data/onboarding/new-organization/contact";
 import { z } from "zod";
 
 const createLegalEntitySchema = fieldsToSchema([
@@ -39,10 +39,7 @@ export async function POST(request: Request) {
   const result = createLegalEntitySchema.safeParse(rawBody);
   if (!result.success) {
     const messages = result.error.issues.map((e) => e.message);
-    return safeErrorResponse(
-      `Validation failed: ${messages.join(", ")}`,
-      400,
-    );
+    return safeErrorResponse(`Validation failed: ${messages.join(", ")}`, 400);
   }
 
   const body = result.data;

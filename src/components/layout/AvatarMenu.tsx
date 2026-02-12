@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
@@ -8,16 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createClient } from "@/lib/supabase/client";
+import { useLogout } from "@/lib/supabase/useLogout";
 
 export function AvatarMenu({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut({ scope: "local" });
-    router.push("/auth/login");
-  };
+  const handleLogout = useLogout();
 
   return (
     <DropdownMenu>
@@ -25,7 +18,7 @@ export function AvatarMenu({ children }: { children: React.ReactNode }) {
       <DropdownMenuContent align="end" className="bg-background">
         <DropdownMenuItem onClick={handleLogout} className="gap-2">
           <LogOut className="h-4 w-4" />
-          Logout
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

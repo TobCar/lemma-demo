@@ -6,10 +6,13 @@ import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { ArrowRight } from "lucide-react";
 import { useState, useMemo } from "react";
 import { FormText, FormDropdown } from "@/components/onboarding/fields";
-import { profileFields, naicsOptions } from "@/data/onboarding/new-organisation";
+import {
+  profileFields,
+  naicsOptions,
+} from "@/data/onboarding/new-organization";
 import { validateFields } from "@/lib/validation";
 
-export function OrganisationProfile() {
+export function OrganizationProfile() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -65,12 +68,12 @@ export function OrganisationProfile() {
     <form className="space-y-7" onSubmit={handleSubmit} noValidate>
       <div>
         <h1 className="onboarding-header">
-          Tell us a bit about your Organisation
+          Tell us a bit about your Organization
         </h1>
       </div>
 
       <FormText
-        label="Organisation Name"
+        label="Organization Name"
         placeholder="Acme Healthcare Inc."
         required
         value={businessProfile.legalBusinessName}
@@ -104,14 +107,14 @@ export function OrganisationProfile() {
       />
 
       <FormDropdown
-        label="Organisation Structure"
+        label="Organization Structure"
         value={businessProfile.organizationType}
         onChange={handleOrgTypeChange}
         options={availableOrgTypes}
         required
         searchable
-        placeholder="Select your organisation structure..."
-        searchPlaceholder="Search organisation structures..."
+        placeholder="Select your Organization structure..."
+        searchPlaceholder="Search Organization structures..."
         renderItemExtra={(option) =>
           option.disabled && businessProfile.incorporationState ? (
             <span className="ml-auto text-[12px] text-muted-foreground">

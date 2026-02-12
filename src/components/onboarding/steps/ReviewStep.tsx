@@ -143,10 +143,10 @@ export function ReviewStep() {
       </div>
 
       <div className="review-section">
-        <h3 className="review-section-title">Organisation Information</h3>
+        <h3 className="review-section-title">Organization Information</h3>
         <div>
           <div className="review-row">
-            <span className="review-label">Organisation name</span>
+            <span className="review-label">Organization name</span>
             <span className="review-value">
               {businessProfile.legalBusinessName || "\u2014"}
             </span>
@@ -164,7 +164,7 @@ export function ReviewStep() {
             </span>
           </div>
           <div className="review-row">
-            <span className="review-label">Organisation structure</span>
+            <span className="review-label">Organization structure</span>
             <span className="review-value">
               {getStructureLabel(businessProfile.organizationType)}
             </span>
@@ -173,7 +173,7 @@ export function ReviewStep() {
       </div>
 
       <div className="review-section">
-        <h3 className="review-section-title">Organisation Details</h3>
+        <h3 className="review-section-title">Organization Details</h3>
         <div>
           <div className="review-row">
             <span className="review-label">State of incorporation</span>
@@ -207,7 +207,7 @@ export function ReviewStep() {
             <span className="review-value">
               {businessProfile.npiType === "type1"
                 ? `${businessProfile.individualNpi || "\u2014"} (Individual)`
-                : `${businessProfile.practiceNpi || "\u2014"} (Organisational)`}
+                : `${businessProfile.practiceNpi || "\u2014"} (Organizational)`}
             </span>
           </div>
           <div className="review-row">

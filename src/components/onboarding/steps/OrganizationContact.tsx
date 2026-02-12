@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { FormFields } from "@/components/onboarding/fields";
-import { contactFields } from "@/data/onboarding/new-organisation";
+import { contactFields } from "@/data/onboarding/new-organization";
 import { validateFields } from "@/lib/validation";
 
-export function OrganisationContact() {
+export function OrganizationContact() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,7 +41,7 @@ export function OrganisationContact() {
     <form className="space-y-7" onSubmit={handleSubmit} noValidate>
       <div>
         <h1 className="onboarding-header">
-          Tell us a bit about your Organisation
+          Tell us a bit about your Organization
         </h1>
       </div>
 

@@ -6,4 +6,4 @@ Do not copy paste code when you could've written a reusable component or a reusa
 
 # Copy writing
 
-Use American spelling when writing text users will read.
+Use American spelling when writing text users will read like "organization" instead of "organisation".

@@ -25,10 +25,10 @@ import {
   detailsOrgNpiField,
   detailsIndividualNpiField,
   stateOptions,
-} from "@/data/onboarding/new-organisation";
+} from "@/data/onboarding/new-organization";
 import { validateFields } from "@/lib/validation";
 
-export function OrganisationDetails() {
+export function OrganizationDetails() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const ss4InputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +117,7 @@ export function OrganisationDetails() {
     <form className="space-y-7" onSubmit={handleSubmit} noValidate>
       <div>
         <h1 className="onboarding-header">
-          Tell us a bit about your Organisation
+          Tell us a bit about your Organization
         </h1>
       </div>
 
@@ -152,7 +152,7 @@ export function OrganisationDetails() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="type2">
-                  Organisational NPI (Type 2)
+                  Organizational NPI (Type 2)
                 </SelectItem>
                 <SelectItem value="type1">Individual NPI (Type 1)</SelectItem>
               </SelectContent>
@@ -175,7 +175,7 @@ export function OrganisationDetails() {
                   maxLength={10}
                 />
                 <p className="text-[13px] text-muted-foreground mt-1.5">
-                  10-digit Organisational NPI assigned to your practice.
+                  10-digit Organizational NPI assigned to your practice.
                 </p>
               </div>
             )}
@@ -206,7 +206,7 @@ export function OrganisationDetails() {
         </div>
       ) : (
         <div className="form-field">
-          <FormLabel required>Organisational NPI (Type 2)</FormLabel>
+          <FormLabel required>Organizational NPI (Type 2)</FormLabel>
           <Input
             id="npi"
             placeholder="1234567890"
@@ -223,7 +223,7 @@ export function OrganisationDetails() {
           />
           <p className="text-[13px] text-muted-foreground mt-1.5">
             This is the 10-digit National Provider Identifier assigned to your
-            group practice or organisation. Do not use your personal (Type 1)
+            group practice or Organization. Do not use your personal (Type 1)
             NPI.
           </p>
           <FieldError error={errors.npi} />

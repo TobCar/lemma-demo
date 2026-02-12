@@ -35,12 +35,12 @@ export const detailsOrgNpiField: FieldRow[] = [
     {
       type: "text",
       key: "practiceNpi",
-      label: "Organisational NPI (Type 2)",
+      label: "Organizational NPI (Type 2)",
       placeholder: "1234567890",
       format: "npi",
       required: true,
       description:
-        "This is the 10-digit National Provider Identifier assigned to your group practice or organisation. Do not use your personal (Type 1) NPI.",
+        "This is the 10-digit National Provider Identifier assigned to your group practice or Organization. Do not use your personal (Type 1) NPI.",
     },
   ],
 ];

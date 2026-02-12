@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormFields } from "@/components/onboarding/fields";
-import { leadershipFields } from "@/data/onboarding/new-organisation";
+import { leadershipFields } from "@/data/onboarding/new-organization";
 import { validateFields } from "@/lib/validation";
 
 export function LeadershipStep() {
@@ -66,7 +66,12 @@ export function LeadershipStep() {
         </p>
       </div>
 
-      <FormFields fields={leadershipFields} values={leader} onChange={handleChange} errors={errors} />
+      <FormFields
+        fields={leadershipFields}
+        values={leader}
+        onChange={handleChange}
+        errors={errors}
+      />
 
       <div className="form-field">
         <Label>Ownership</Label>

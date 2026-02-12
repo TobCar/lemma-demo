@@ -8,9 +8,11 @@ import {
   Wallet,
   Mail,
   RefreshCcw,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLogout } from "@/lib/supabase/useLogout";
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -29,6 +31,7 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const handleLogout = useLogout();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-60 border-r border-sidebar-border bg-sidebar">
@@ -70,6 +73,17 @@ export function Sidebar() {
             );
           })}
         </nav>
+
+        {/* Log out */}
+        <div className="px-3 pb-4">
+          <button
+            onClick={handleLogout}
+            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-all duration-150 hover:text-foreground"
+          >
+            <LogOut className="h-[18px] w-[18px] flex-shrink-0 text-sidebar-foreground transition-colors group-hover:text-foreground" />
+            Log out
+          </button>
+        </div>
       </div>
     </aside>
   );

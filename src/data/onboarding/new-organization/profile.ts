@@ -17,7 +17,7 @@ export const profileFields: FieldRow[] = [
     {
       type: "text",
       key: "legalBusinessName",
-      label: "Organisation Name",
+      label: "Organization Name",
       placeholder: "Acme Healthcare Inc.",
       required: true,
     },
@@ -46,12 +46,12 @@ export const profileFields: FieldRow[] = [
     {
       type: "dropdown",
       key: "organizationType",
-      label: "Organisation Structure",
+      label: "Organization Structure",
       options: orgTypeOptions,
       required: true,
       searchable: true,
-      placeholder: "Select your organisation structure...",
-      searchPlaceholder: "Search organisation structures...",
+      placeholder: "Select your Organization structure...",
+      searchPlaceholder: "Search Organization structures...",
     },
   ],
 ];

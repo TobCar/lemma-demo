@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -18,7 +17,6 @@ export default function ProtectedLayout({
           <Sidebar />
         </Suspense>
         <div className="ml-60">
-          <Header />
           <main className="p-6">{children}</main>
         </div>
       </div>

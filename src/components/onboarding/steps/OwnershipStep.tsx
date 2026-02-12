@@ -3,17 +3,11 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  ArrowRight,
-  ArrowLeft,
-  Plus,
-  Pencil,
-  User,
-} from "lucide-react";
+import { ArrowRight, ArrowLeft, Plus, Pencil, User } from "lucide-react";
 import { useState } from "react";
 import { OwnerData } from "@/types/onboarding";
 import { FormFields } from "@/components/onboarding/fields";
-import { ownershipEditFields } from "@/data/onboarding/new-organisation";
+import { ownershipEditFields } from "@/data/onboarding/new-organization";
 import { validateFields } from "@/lib/validation";
 
 export function OwnershipStep() {
