@@ -1,4 +1,4 @@
-import { Bell, Search, HelpCircle } from "lucide-react";
+import { Search, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AvatarButton } from "@/components/layout/AvatarButton";
 
@@ -19,10 +19,6 @@ export function Header() {
       <div className="flex items-center gap-1">
         <button className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
           <HelpCircle className="h-4 w-4" />
-        </button>
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-category-coral" />
         </button>
         <AvatarButton />
       </div>

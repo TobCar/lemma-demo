@@ -298,6 +298,10 @@ White cards, soft gray background, dark charcoal text, teal accents.
 
   .onboarding-button-row {
     @apply flex justify-between items-center pt-8 mt-8 border-t border-border;
+
+    > :only-child {
+      @apply ml-auto;
+    }
   }
 
   .trust-signal {

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 import type { OnboardingFormData, OwnerData } from "@/types/onboarding";
+import { resolveNaicsCode } from "@/data/naicsCodes";
 
 interface OnboardingContextType {
   currentStep: number;
@@ -142,7 +143,7 @@ export function OnboardingProvider({
         name: businessProfile.legalBusinessName,
         tax_identifier: businessProfile.ein.replace(/-/g, ""),
         website: businessProfile.website || undefined,
-        industry_code: businessProfile.naicsCode || undefined,
+        industry_code: resolveNaicsCode(businessProfile.naicsCode) || undefined,
         address: {
           line1: businessProfile.address.line1,
           line2: businessProfile.address.line2 || undefined,

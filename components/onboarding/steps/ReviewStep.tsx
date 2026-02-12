@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { US_STATES } from "@/data/usStates";
-import { HEALTHCARE_NAICS_CODES } from "@/data/naicsCodes";
+import { HEALTHCARE_NAICS_CODES, resolveNaicsCode } from "@/data/naicsCodes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -71,7 +71,7 @@ export function ReviewStep() {
         businessPhone: businessProfile.businessPhone,
         structure: orgType?.value ?? businessProfile.organizationType,
         npi,
-        naicsCode: businessProfile.naicsCode,
+        naicsCode: resolveNaicsCode(businessProfile.naicsCode),
         ipAddress: identityVerification.termsIpAddress,
       };
 
@@ -114,7 +114,7 @@ export function ReviewStep() {
 
   const getTypeLabel = (code: string) => {
     return (
-      HEALTHCARE_NAICS_CODES.find((t) => t.code === code)?.label ||
+      HEALTHCARE_NAICS_CODES.find((t) => t.key === code)?.label ||
       code ||
       "\u2014"
     );
@@ -312,43 +312,42 @@ export function ReviewStep() {
         </label>
       </div>
 
-      <div className="onboarding-button-row flex-col items-stretch gap-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <p>Something went wrong on our end! Please contact our team.</p>
-            </AlertDescription>
-          </Alert>
-        )}
-        <div className="flex justify-between items-center">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentStep(4)}
-            disabled={isSubmitting}
-            className="btn-secondary"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!termsAccepted || isSubmitting}
-            className="btn-primary"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              <>
-                Create My Account
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-        </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <p>Something went wrong on our end! Please contact our team.</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="onboarding-button-row">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep(4)}
+          disabled={isSubmitting}
+          className="btn-secondary"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!termsAccepted || isSubmitting}
+          className="btn-primary"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            <>
+              Create My Account
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

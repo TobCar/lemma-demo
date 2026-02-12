@@ -1,37 +1,50 @@
 "use client";
 
 import { useOnboarding } from "@/contexts/OnboardingContext";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { US_STATES } from "@/data/usStates";
 import {
   ArrowRight,
   ArrowLeft,
   Plus,
   Pencil,
-  CalendarIcon,
   User,
-  Shield,
 } from "lucide-react";
-import { useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { useState } from "react";
 import { OwnerData } from "@/types/onboarding";
+import { FormFields, type FieldRow } from "@/components/onboarding/fields";
+import { validateAddress, validateSSN } from "@/lib/validation";
+
+const editFields: FieldRow[] = [
+  [
+    {
+      type: "text",
+      key: "name",
+      label: "Legal name",
+      placeholder: "Full legal name",
+      required: true,
+    },
+  ],
+  [
+    { type: "date", key: "dateOfBirth", label: "Date of birth", required: true },
+    {
+      type: "text",
+      key: "ssn",
+      label: "Tax ID (SSN or ITIN)",
+      format: "ssn",
+      placeholder: "123-45-6789",
+      required: true,
+    },
+  ],
+  [
+    {
+      type: "shield-banner",
+      key: "ssn-notice",
+      text: "Your SSN is encrypted and used only for identity verification. It will not affect your credit score.",
+    },
+  ],
+  [{ type: "address", key: "address", label: "Home address", required: true }],
+];
 
 export function OwnershipStep() {
   const { formData, addOwner, updateOwner, removeOwner, setCurrentStep } =
@@ -39,22 +52,20 @@ export function OwnershipStep() {
   const [allOwnersConfirmed, setAllOwnersConfirmed] = useState(false);
   const [editingOwnerId, setEditingOwnerId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const leader = formData.owners[0];
   const additionalOwners = formData.owners
     .slice(1)
     .filter((o) => o.prongs.includes("ownership"));
 
+  const totalOwners =
+    (leader.prongs.includes("ownership") ? 1 : 0) + additionalOwners.length;
+  const MAX_OWNERS = 4;
+
   const editingOwner = editingOwnerId
     ? formData.owners.find((o) => o.id === editingOwnerId)
     : null;
-
-  const formatSSN = useCallback((value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 9);
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-  }, []);
 
   const getMaskedSSN = (ssn: string) => {
     const digits = ssn.replace(/-/g, "");
@@ -70,6 +81,7 @@ export function OwnershipStep() {
       updateOwner(newOwner.id, { prongs: ["ownership"] });
     }
     setIsAddingNew(true);
+    setErrors({});
     setTimeout(() => {
       const updatedOwners = formData.owners;
       const lastOwner = updatedOwners[updatedOwners.length - 1];
@@ -82,11 +94,13 @@ export function OwnershipStep() {
   const handleEditOwner = (owner: OwnerData) => {
     setIsAddingNew(false);
     setEditingOwnerId(owner.id);
+    setErrors({});
   };
 
   const handleDoneEditing = () => {
     setEditingOwnerId(null);
     setIsAddingNew(false);
+    setErrors({});
   };
 
   const handleCancelAdding = () => {
@@ -95,15 +109,46 @@ export function OwnershipStep() {
     }
     setEditingOwnerId(null);
     setIsAddingNew(false);
+    setErrors({});
   };
 
-  const handleNext = () => {
-    setCurrentStep(5);
+  const handleEditChange = (key: string, value: unknown) => {
+    if (!editingOwnerId) return;
+    if (key === "address") {
+      updateOwner(editingOwnerId, {
+        address: value as OwnerData["address"],
+      });
+    } else {
+      updateOwner(editingOwnerId, { [key]: value });
+    }
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const validateEdit = () => {
+    if (!editingOwner) return false;
+    const newErrors: Record<string, string> = {};
+    if (!editingOwner.name.trim()) {
+      newErrors.name = "Legal name is required";
+    }
+    if (!editingOwner.dateOfBirth) {
+      newErrors.dateOfBirth = "Date of birth is required";
+    }
+    validateSSN(editingOwner.ssn, "ssn", newErrors);
+    validateAddress(editingOwner.address, "address", newErrors);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateEdit()) {
+      handleDoneEditing();
+    }
   };
 
   if (editingOwnerId && editingOwner) {
     return (
-      <div className="space-y-7">
+      <form className="space-y-7" onSubmit={handleEditSubmit} noValidate>
         <div>
           <h1 className="onboarding-header">
             {isAddingNew ? "Add a beneficial owner" : "Edit beneficial owner"}
@@ -114,156 +159,16 @@ export function OwnershipStep() {
           </p>
         </div>
 
-        <div className="form-field">
-          <Label>Legal name</Label>
-          <Input
-            placeholder="Full legal name"
-            value={editingOwner.name}
-            onChange={(e) =>
-              updateOwner(editingOwner.id, { name: e.target.value })
-            }
-            className="form-input"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="form-field">
-            <Label>Date of birth</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "form-select-trigger w-full justify-start text-left font-normal",
-                    !editingOwner.dateOfBirth && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {editingOwner.dateOfBirth
-                    ? format(editingOwner.dateOfBirth, "MM/dd/yyyy")
-                    : "mm/dd/yyyy"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  captionLayout="dropdown"
-                  startMonth={new Date(1924, 0)}
-                  endMonth={new Date()}
-                  selected={editingOwner.dateOfBirth || undefined}
-                  onSelect={(date) =>
-                    updateOwner(editingOwner.id, { dateOfBirth: date || null })
-                  }
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1910-01-01")
-                  }
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="form-field">
-            <Label>Tax ID (SSN or ITIN)</Label>
-            <Input
-              placeholder="123-45-6789"
-              value={editingOwner.ssn}
-              onChange={(e) =>
-                updateOwner(editingOwner.id, { ssn: formatSSN(e.target.value) })
-              }
-              className="form-input masked-input"
-            />
-          </div>
-        </div>
-
-        <div className="trust-signal">
-          <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          <span>
-            Your SSN is encrypted and used only for identity verification. It
-            will not affect your credit score.
-          </span>
-        </div>
-
-        <div className="space-y-3">
-          <Label>Home address</Label>
-
-          <Input
-            placeholder="Address line 1"
-            value={editingOwner.address.line1}
-            onChange={(e) =>
-              updateOwner(editingOwner.id, {
-                address: { ...editingOwner.address, line1: e.target.value },
-              })
-            }
-            className="form-input"
-          />
-
-          <Input
-            placeholder="Address line 2 (optional)"
-            value={editingOwner.address.line2}
-            onChange={(e) =>
-              updateOwner(editingOwner.id, {
-                address: { ...editingOwner.address, line2: e.target.value },
-              })
-            }
-            className="form-input"
-          />
-
-          <div className="address-grid">
-            <div className="city">
-              <Input
-                placeholder="City"
-                value={editingOwner.address.city}
-                onChange={(e) =>
-                  updateOwner(editingOwner.id, {
-                    address: { ...editingOwner.address, city: e.target.value },
-                  })
-                }
-                className="form-input"
-              />
-            </div>
-
-            <div className="state">
-              <Select
-                value={editingOwner.address.state}
-                onValueChange={(value) =>
-                  updateOwner(editingOwner.id, {
-                    address: { ...editingOwner.address, state: value },
-                  })
-                }
-              >
-                <SelectTrigger className="form-select-trigger">
-                  <SelectValue placeholder="State" />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="zip">
-              <Input
-                placeholder="ZIP code"
-                value={editingOwner.address.zip}
-                onChange={(e) => {
-                  const zip = e.target.value.replace(/\D/g, "").slice(0, 5);
-                  updateOwner(editingOwner.id, {
-                    address: { ...editingOwner.address, zip },
-                  });
-                }}
-                maxLength={5}
-                className="form-input"
-              />
-            </div>
-          </div>
-        </div>
+        <FormFields
+          fields={editFields}
+          values={editingOwner}
+          onChange={handleEditChange}
+          errors={errors}
+        />
 
         <div className="onboarding-button-row">
           <Button
+            type="button"
             variant="outline"
             onClick={handleCancelAdding}
             className="btn-secondary"
@@ -271,12 +176,12 @@ export function OwnershipStep() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             {isAddingNew ? "Cancel" : "Back"}
           </Button>
-          <Button onClick={handleDoneEditing} className="btn-primary">
+          <Button type="submit" className="btn-primary">
             {isAddingNew ? "Add Owner" : "Save Changes"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-      </div>
+      </form>
     );
   }
 
@@ -348,16 +253,18 @@ export function OwnershipStep() {
           </div>
         ))}
 
-        <button
-          type="button"
-          onClick={handleAddOwner}
-          className="flex items-center gap-3 w-full px-4 py-4 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-        >
-          <div className="w-9 h-9 rounded-full border-2 border-dashed border-border flex items-center justify-center">
-            <Plus className="w-4 h-4" />
-          </div>
-          <span className="text-[14px]">Add a beneficial owner</span>
-        </button>
+        {totalOwners < MAX_OWNERS && (
+          <button
+            type="button"
+            onClick={handleAddOwner}
+            className="flex items-center gap-3 w-full px-4 py-4 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-full border-2 border-dashed border-border flex items-center justify-center">
+              <Plus className="w-4 h-4" />
+            </div>
+            <span className="text-[14px]">Add a beneficial owner</span>
+          </button>
+        )}
       </div>
 
       <label className="checkbox-label">
@@ -380,14 +287,7 @@ export function OwnershipStep() {
           Back
         </Button>
         <div className="flex gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => setCurrentStep(5)}
-            className="btn-ghost"
-          >
-            Skip for now
-          </Button>
-          <Button onClick={handleNext} className="btn-primary">
+          <Button onClick={() => setCurrentStep(5)} className="btn-primary">
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
