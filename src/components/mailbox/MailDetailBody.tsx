@@ -5,7 +5,12 @@ import { getTypeIcon, formatCurrency } from "./mail-utils";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 
-export async function MailDetailBody({ id }: { id: string }) {
+export async function MailDetailBody({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   // Mock data lookup — replace with Supabase query later
   const mail = mailItems.find((m) => m.id === id);
   if (!mail) notFound();

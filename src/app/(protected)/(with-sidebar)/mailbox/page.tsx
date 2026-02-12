@@ -1,10 +1,3 @@
-import { Suspense } from "react";
-import { MailboxList } from "@/components/mailbox/MailboxList";
-
-export default function DigitalMailboxPage() {
-  return (
-    <Suspense>
-      <MailboxList />
-    </Suspense>
-  );
+export default function MailboxPage() {
+  return null;
 }

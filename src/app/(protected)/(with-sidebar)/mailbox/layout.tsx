@@ -1,16 +1,17 @@
 import { Suspense } from "react";
+import { MailboxList } from "@/components/mailbox/MailboxList";
 
 export default function MailboxLayout({
   children,
-  detail,
 }: {
   children: React.ReactNode;
-  detail: React.ReactNode;
 }) {
   return (
     <>
+      <Suspense>
+        <MailboxList />
+      </Suspense>
       {children}
-      <Suspense>{detail}</Suspense>
     </>
   );
 }
