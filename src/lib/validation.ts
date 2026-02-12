@@ -44,6 +44,9 @@ export function validateEmail(
   }
 }
 
+// TODO: migrate to Twilio Lookup API for phone validation
+const PREMIUM_AREA_CODES = ["900", "976"];
+
 export function validatePhone(
   phone: string,
   key: string,
@@ -54,6 +57,8 @@ export function validatePhone(
     errors[key] = "Phone number is required";
   } else if (digits.length !== 10) {
     errors[key] = "Phone number must be exactly 10 digits";
+  } else if (PREMIUM_AREA_CODES.includes(digits.substring(0, 3))) {
+    errors[key] = "Premium-rate numbers are not allowed";
   }
 }
 

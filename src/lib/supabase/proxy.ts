@@ -46,13 +46,15 @@ export async function updateAuthSession(request: NextRequest) {
     // no user, redirect to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    url.searchParams.set("redirectTo", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthRoute) {
-    // logged-in user on an auth page, redirect to home
+    // logged-in user on an auth page, redirect to home (or redirectTo destination)
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = request.nextUrl.searchParams.get("redirectTo") || "/";
+    url.searchParams.delete("redirectTo");
     return NextResponse.redirect(url);
   }
 

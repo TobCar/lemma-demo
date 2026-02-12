@@ -19,7 +19,6 @@ export default function DashboardPage() {
         {/* Right column - Stacked widgets */}
         <div className="space-y-4">
           <PromoBanner />
-          <SpendingWidget />
           <AccountsList />
         </div>
       </div>

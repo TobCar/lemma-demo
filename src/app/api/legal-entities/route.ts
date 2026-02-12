@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { safeErrorResponse } from "@/lib/api/errors";
-import { VALID_STRUCTURES } from "@/data/organizations";
-import { validateFields } from "@/lib/validation";
+import { fieldsToSchema, zodEmail, zodAddress } from "@/lib/zod";
 import { profileFields } from "@/data/onboarding/new-organisation/profile";
 import { detailsOrgNpiField } from "@/data/onboarding/new-organisation/details";
 import { contactFields } from "@/data/onboarding/new-organisation/contact";
-import type { CreateLegalEntityRequest } from "@/types/onboarding";
+import { z } from "zod";
+
+const createLegalEntitySchema = fieldsToSchema([
+  ...profileFields,
+  ...detailsOrgNpiField,
+  ...contactFields,
+]).extend({
+  ipAddress: z.string().optional(),
+  businessEmail: zodEmail.optional(),
+  address: zodAddress.optional(),
+});
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -20,51 +29,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: CreateLegalEntityRequest;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return safeErrorResponse("Invalid request body", 400);
   }
 
-  if (!VALID_STRUCTURES.has(body.structure)) {
-    return safeErrorResponse(`Invalid structure: ${body.structure}`, 400);
-  }
-
-  // Map API payload keys to field-definition keys and validate
-  const values: Record<string, unknown> = {
-    legalBusinessName: body.name,
-    website: body.website,
-    naicsCode: body.naicsCode,
-    organizationType: body.structure,
-    practiceNpi: body.npi,
-    businessPhone: body.businessPhone,
-  };
-  if (body.businessEmail !== undefined)
-    values.businessEmail = body.businessEmail;
-  if (body.address !== undefined) values.address = body.address;
-
-  // Only validate fields that are present in the request
-  const contactToValidate = contactFields.filter((row) => row[0].key in values);
-  const errors = validateFields(
-    [...profileFields, ...detailsOrgNpiField, ...contactToValidate],
-    values,
-  );
-  if (Object.keys(errors).length > 0) {
+  const result = createLegalEntitySchema.safeParse(rawBody);
+  if (!result.success) {
+    const messages = result.error.issues.map((e) => e.message);
     return safeErrorResponse(
-      `Validation failed: ${Object.values(errors).join(", ")}`,
+      `Validation failed: ${messages.join(", ")}`,
       400,
     );
   }
 
+  const body = result.data;
+
   const { data: entity, error: entityError } = await supabase
     .from("legal_entities")
     .insert({
-      name: body.name,
-      website: body.website || null,
+      name: body.legalBusinessName,
+      website: body.url || null,
       business_phone: body.businessPhone || null,
-      structure: body.structure,
-      npi: body.npi,
+      structure: body.organizationType,
+      npi: body.practiceNpi,
       naics_code: body.naicsCode || null,
       owner_user_id: user.id,
     })

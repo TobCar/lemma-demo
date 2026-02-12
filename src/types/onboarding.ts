@@ -81,8 +81,8 @@ export interface OnboardingFormData {
 }
 
 export interface CreateLegalEntityRequest {
-  name: string;
-  website: string;
+  legalBusinessName: string;
+  url: string;
   businessPhone: string;
   businessEmail?: string;
   address?: {
@@ -92,8 +92,8 @@ export interface CreateLegalEntityRequest {
     state: string;
     zip: string;
   };
-  structure: string;
-  npi: string;
+  organizationType: string;
+  practiceNpi: string;
   naicsCode: string;
   ipAddress: string;
 }

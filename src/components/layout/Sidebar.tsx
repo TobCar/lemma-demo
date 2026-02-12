@@ -8,9 +8,6 @@ import {
   Wallet,
   Mail,
   RefreshCcw,
-  FileCheck,
-  TrendingUp,
-  Link2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,10 +25,6 @@ const navItems: NavItem[] = [
   { icon: Wallet, label: "Accounts", href: "/accounts" },
   { icon: Mail, label: "Digital Mailbox", href: "/mailbox" },
   { icon: RefreshCcw, label: "Cash Sweeps", href: "/sweeps" },
-  // Hidden for now - pages still exist
-  // { icon: FileCheck, label: "Claim Reconciliation", href: "/claims" },
-  // { icon: TrendingUp, label: "Capital", href: "/capital" },
-  { icon: Link2, label: "Connections", href: "/connections" },
 ];
 
 export function Sidebar() {
@@ -61,13 +54,15 @@ export function Sidebar() {
                   "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-150",
                   isActive
                     ? "font-semibold text-foreground"
-                    : "font-medium text-sidebar-foreground hover:text-foreground"
+                    : "font-medium text-sidebar-foreground hover:text-foreground",
                 )}
               >
                 <item.icon
                   className={cn(
                     "h-[18px] w-[18px] flex-shrink-0 transition-colors",
-                    isActive ? "text-foreground" : "text-sidebar-foreground group-hover:text-foreground"
+                    isActive
+                      ? "text-foreground"
+                      : "text-sidebar-foreground group-hover:text-foreground",
                   )}
                 />
                 {item.label}

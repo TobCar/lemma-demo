@@ -1,9 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plus, ArrowLeftRight, Send } from "lucide-react";
+import { ArrowLeftRight, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export function WelcomeHeader() {
   return (
@@ -21,15 +20,9 @@ export function WelcomeHeader() {
           <ArrowLeftRight className="h-4 w-4" />
           Transfer
         </Button>
-        <Button variant="outline" className="gap-2 rounded-full px-5">
+        <Button className="gap-2 rounded-full px-5">
           <Send className="h-4 w-4" />
           Deposit
-        </Button>
-        <Button variant="outline" className="gap-2 rounded-full px-5" asChild>
-          <Link href="/onboarding/new-organization">
-            <Plus className="h-4 w-4" />
-            Account
-          </Link>
         </Button>
       </div>
     </motion.div>

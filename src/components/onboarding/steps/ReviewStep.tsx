@@ -66,11 +66,11 @@ export function ReviewStep() {
           : businessProfile.practiceNpi;
 
       const body: CreateLegalEntityRequest = {
-        name: businessProfile.legalBusinessName,
-        website: businessProfile.website,
+        legalBusinessName: businessProfile.legalBusinessName,
+        url: businessProfile.website,
         businessPhone: businessProfile.businessPhone,
-        structure: orgType?.value ?? businessProfile.organizationType,
-        npi,
+        organizationType: orgType?.value ?? businessProfile.organizationType,
+        practiceNpi: npi,
         naicsCode: resolveNaicsCode(businessProfile.naicsCode),
         ipAddress: identityVerification.termsIpAddress,
       };
