@@ -4,49 +4,20 @@ import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { FormFields, type FieldRow } from "@/components/onboarding/fields";
-import { validateAddress, validateEmail, validatePhone } from "@/lib/validation";
+import { FormFields } from "@/components/onboarding/fields";
+import { contactFields } from "@/data/onboarding/new-organisation";
+import { validateFields } from "@/lib/validation";
 
-const fields: FieldRow[] = [
-  [
-    {
-      type: "address",
-      key: "address",
-      label: "Address",
-      required: true,
-      description:
-        "Physical street addresses only. P.O. Boxes are not permitted by our banking partner.",
-    },
-  ],
-  [
-    {
-      type: "email",
-      key: "businessEmail",
-      label: "Business email",
-      placeholder: "contact@yourpractice.com",
-      required: true,
-    },
-  ],
-  [
-    {
-      type: "text",
-      key: "businessPhone",
-      label: "Business phone number",
-      format: "phone",
-      placeholder: "(555) 123-4567",
-      required: true,
-    },
-  ],
-];
-
-export function OrganisationStep3() {
+export function OrganisationContact() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (key: string, value: unknown) => {
     if (key === "address") {
-      updateBusinessProfile({ address: value as typeof businessProfile.address });
+      updateBusinessProfile({
+        address: value as typeof businessProfile.address,
+      });
     } else {
       updateBusinessProfile({ [key]: value });
     }
@@ -54,10 +25,7 @@ export function OrganisationStep3() {
   };
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    validateAddress(businessProfile.address, "address", newErrors);
-    validateEmail(businessProfile.businessEmail, "businessEmail", newErrors, "Business email");
-    validatePhone(businessProfile.businessPhone, "businessPhone", newErrors);
+    const newErrors = validateFields(contactFields, businessProfile);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,11 +43,10 @@ export function OrganisationStep3() {
         <h1 className="onboarding-header">
           Tell us a bit about your Organisation
         </h1>
-        <p className="text-[14px] text-muted-foreground mt-1">Step 3 of 3</p>
       </div>
 
       <FormFields
-        fields={fields}
+        fields={contactFields}
         values={businessProfile}
         onChange={handleChange}
         errors={errors}

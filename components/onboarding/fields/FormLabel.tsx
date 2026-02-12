@@ -7,7 +7,7 @@ interface FormLabelProps {
 
 export function FormLabel({ children, required }: FormLabelProps) {
   return (
-    <Label>
+    <Label className="form-label">
       {children}
       {required && <span className="text-destructive ml-0.5">*</span>}
     </Label>

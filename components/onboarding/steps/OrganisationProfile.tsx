@@ -3,12 +3,13 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
-import { HEALTHCARE_NAICS_CODES } from "@/data/naicsCodes";
 import { ArrowRight } from "lucide-react";
 import { useState, useMemo } from "react";
 import { FormText, FormDropdown } from "@/components/onboarding/fields";
+import { profileFields, naicsOptions } from "@/data/onboarding/new-organisation";
+import { validateFields } from "@/lib/validation";
 
-export function OrganisationStep1() {
+export function OrganisationProfile() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -22,11 +23,6 @@ export function OrganisationStep1() {
         ) || false,
     }));
   }, [businessProfile.incorporationState]);
-
-  const naicsOptions = useMemo(
-    () => HEALTHCARE_NAICS_CODES.map((t) => ({ value: t.key, label: t.label })),
-    [],
-  );
 
   const handleOrgTypeChange = (value: string) => {
     const orgType = ORGANIZATION_TYPES.find((o) => o.value === value);
@@ -53,16 +49,7 @@ export function OrganisationStep1() {
   };
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!businessProfile.legalBusinessName.trim()) {
-      newErrors.legalBusinessName = "Organization name is required";
-    }
-    if (!businessProfile.naicsCode) {
-      newErrors.naicsCode = "Type is required";
-    }
-    if (!businessProfile.organizationType) {
-      newErrors.organizationType = "Organization structure is required";
-    }
+    const newErrors = validateFields(profileFields, businessProfile);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -80,7 +67,6 @@ export function OrganisationStep1() {
         <h1 className="onboarding-header">
           Tell us a bit about your Organisation
         </h1>
-        <p className="text-[14px] text-muted-foreground mt-1">Step 1 of 3</p>
       </div>
 
       <FormText

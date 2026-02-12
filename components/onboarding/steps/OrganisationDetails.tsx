@@ -11,13 +11,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
-import { US_STATES } from "@/data/usStates";
 import { ArrowRight, ArrowLeft, Upload, Check } from "lucide-react";
 import { useRef, useState } from "react";
 import { formatNPI } from "@/lib/formatters";
-import { FormLabel, FormText, FormDropdown, FieldError } from "@/components/onboarding/fields";
+import {
+  FormLabel,
+  FormText,
+  FormDropdown,
+  FieldError,
+} from "@/components/onboarding/fields";
+import {
+  detailsBaseFields,
+  detailsOrgNpiField,
+  detailsIndividualNpiField,
+  stateOptions,
+} from "@/data/onboarding/new-organisation";
+import { validateFields } from "@/lib/validation";
 
-export function OrganisationStep2() {
+export function OrganisationDetails() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
   const { businessProfile } = formData;
   const ss4InputRef = useRef<HTMLInputElement>(null);
@@ -28,11 +39,6 @@ export function OrganisationStep2() {
   );
   const isSoleProprietorship =
     selectedOrgType?.logicBranch === "skip_beneficial_owners";
-
-  const stateOptions = US_STATES.map((s) => ({
-    value: s.value,
-    label: s.label,
-  }));
 
   const clearError = (key: string) => {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
@@ -62,27 +68,40 @@ export function OrganisationStep2() {
   };
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!businessProfile.incorporationState) {
-      newErrors.incorporationState = "State of incorporation is required";
-    }
-    const npiValue = isSoleProprietorship
+    const npiFields = isSoleProprietorship
       ? businessProfile.npiType === "type1"
-        ? businessProfile.individualNpi
-        : businessProfile.practiceNpi
-      : businessProfile.practiceNpi;
-    if (!npiValue?.trim()) {
-      newErrors.npi = "NPI is required";
-    } else if (npiValue.replace(/\D/g, "").length !== 10) {
-      newErrors.npi = "NPI must be exactly 10 digits";
+        ? detailsIndividualNpiField
+        : detailsOrgNpiField
+      : detailsOrgNpiField;
+
+    const newErrors = validateFields(
+      [...detailsBaseFields, ...npiFields],
+      businessProfile,
+    );
+
+    // Custom rule: EIN is not required if SS-4 file is uploaded
+    if (businessProfile.ss4File && newErrors.ein) {
+      delete newErrors.ein;
     }
-    const einDigits = businessProfile.ein.replace(/-/g, "").trim();
-    if (!einDigits && !businessProfile.ss4File) {
+    // Custom message when neither EIN nor SS-4 is provided
+    if (
+      !businessProfile.ein.replace(/\D/g, "").trim() &&
+      !businessProfile.ss4File
+    ) {
       newErrors.ein =
         "Either a Tax ID (EIN) or SS-4 confirmation letter is required";
-    } else if (einDigits && einDigits.length !== 9) {
-      newErrors.ein = "EIN must be exactly 9 digits";
     }
+
+    // Map NPI field key to generic "npi" error key for the manual NPI UI
+    const npiKey =
+      isSoleProprietorship && businessProfile.npiType === "type1"
+        ? "individualNpi"
+        : "practiceNpi";
+    if (newErrors[npiKey]) {
+      newErrors.npi = newErrors[npiKey];
+      delete newErrors[npiKey];
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -100,7 +119,6 @@ export function OrganisationStep2() {
         <h1 className="onboarding-header">
           Tell us a bit about your Organisation
         </h1>
-        <p className="text-[14px] text-muted-foreground mt-1">Step 2 of 3</p>
       </div>
 
       <FormDropdown

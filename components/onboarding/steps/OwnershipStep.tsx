@@ -12,39 +12,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { OwnerData } from "@/types/onboarding";
-import { FormFields, type FieldRow } from "@/components/onboarding/fields";
-import { validateAddress, validateSSN } from "@/lib/validation";
-
-const editFields: FieldRow[] = [
-  [
-    {
-      type: "text",
-      key: "name",
-      label: "Legal name",
-      placeholder: "Full legal name",
-      required: true,
-    },
-  ],
-  [
-    { type: "date", key: "dateOfBirth", label: "Date of birth", required: true },
-    {
-      type: "text",
-      key: "ssn",
-      label: "Tax ID (SSN or ITIN)",
-      format: "ssn",
-      placeholder: "123-45-6789",
-      required: true,
-    },
-  ],
-  [
-    {
-      type: "shield-banner",
-      key: "ssn-notice",
-      text: "Your SSN is encrypted and used only for identity verification. It will not affect your credit score.",
-    },
-  ],
-  [{ type: "address", key: "address", label: "Home address", required: true }],
-];
+import { FormFields } from "@/components/onboarding/fields";
+import { ownershipEditFields } from "@/data/onboarding/new-organisation";
+import { validateFields } from "@/lib/validation";
 
 export function OwnershipStep() {
   const { formData, addOwner, updateOwner, removeOwner, setCurrentStep } =
@@ -126,15 +96,7 @@ export function OwnershipStep() {
 
   const validateEdit = () => {
     if (!editingOwner) return false;
-    const newErrors: Record<string, string> = {};
-    if (!editingOwner.name.trim()) {
-      newErrors.name = "Legal name is required";
-    }
-    if (!editingOwner.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of birth is required";
-    }
-    validateSSN(editingOwner.ssn, "ssn", newErrors);
-    validateAddress(editingOwner.address, "address", newErrors);
+    const newErrors = validateFields(ownershipEditFields, editingOwner);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -160,7 +122,7 @@ export function OwnershipStep() {
         </div>
 
         <FormFields
-          fields={editFields}
+          fields={ownershipEditFields}
           values={editingOwner}
           onChange={handleEditChange}
           errors={errors}

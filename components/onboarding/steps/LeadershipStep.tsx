@@ -6,48 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FormFields, type FieldRow } from "@/components/onboarding/fields";
-import { validateAddress, validateSSN } from "@/lib/validation";
-
-const fields: FieldRow[] = [
-  [
-    {
-      type: "text",
-      key: "name",
-      label: "Legal name",
-      placeholder: "Full legal name",
-      required: true,
-    },
-  ],
-  [
-    {
-      type: "text",
-      key: "title",
-      label: "Title",
-      placeholder: "e.g. CEO, President, Managing Director",
-      required: true,
-    },
-  ],
-  [
-    { type: "date", key: "dateOfBirth", label: "Date of birth", required: true },
-    {
-      type: "text",
-      key: "ssn",
-      label: "Tax ID (SSN or ITIN)",
-      format: "ssn",
-      placeholder: "123-45-6789",
-      required: true,
-    },
-  ],
-  [
-    {
-      type: "shield-banner",
-      key: "ssn-notice",
-      text: "Your SSN is encrypted and used only for identity verification. It will not affect your credit score.",
-    },
-  ],
-  [{ type: "address", key: "address", label: "Home address", required: true }],
-];
+import { FormFields } from "@/components/onboarding/fields";
+import { leadershipFields } from "@/data/onboarding/new-organisation";
+import { validateFields } from "@/lib/validation";
 
 export function LeadershipStep() {
   const { formData, updateOwner, setCurrentStep } = useOnboarding();
@@ -83,18 +44,7 @@ export function LeadershipStep() {
   }, [leader.id, leader.prongs, updateOwner]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!leader.name.trim()) {
-      newErrors.name = "Legal name is required";
-    }
-    if (!leader.title.trim()) {
-      newErrors.title = "Title is required";
-    }
-    if (!leader.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of birth is required";
-    }
-    validateSSN(leader.ssn, "ssn", newErrors);
-    validateAddress(leader.address, "address", newErrors);
+    const newErrors = validateFields(leadershipFields, leader);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -116,7 +66,7 @@ export function LeadershipStep() {
         </p>
       </div>
 
-      <FormFields fields={fields} values={leader} onChange={handleChange} errors={errors} />
+      <FormFields fields={leadershipFields} values={leader} onChange={handleChange} errors={errors} />
 
       <div className="form-field">
         <Label>Ownership</Label>

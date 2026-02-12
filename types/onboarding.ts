@@ -84,6 +84,14 @@ export interface CreateLegalEntityRequest {
   name: string;
   website: string;
   businessPhone: string;
+  businessEmail?: string;
+  address?: {
+    line1: string;
+    line2: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
   structure: string;
   npi: string;
   naicsCode: string;

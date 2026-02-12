@@ -1,18 +1,18 @@
 "use client";
 
 import { useOnboarding } from "@/contexts/OnboardingContext";
-import { OrganisationStep1 } from "@/components/onboarding/steps/OrganisationStep1";
-import { OrganisationStep2 } from "@/components/onboarding/steps/OrganisationStep2";
-import { OrganisationStep3 } from "@/components/onboarding/steps/OrganisationStep3";
+import { OrganisationProfile } from "@/components/onboarding/steps/OrganisationProfile";
+import { OrganisationDetails } from "@/components/onboarding/steps/OrganisationDetails";
+import { OrganisationContact } from "@/components/onboarding/steps/OrganisationContact";
 import { LeadershipStep } from "@/components/onboarding/steps/LeadershipStep";
 import { OwnershipStep } from "@/components/onboarding/steps/OwnershipStep";
 import { ReviewStep } from "@/components/onboarding/steps/ReviewStep";
 import { SuccessScreen } from "@/components/onboarding/SuccessScreen";
 
 const stepOrder = [
-  OrganisationStep1,
-  OrganisationStep2,
-  OrganisationStep3,
+  OrganisationProfile,
+  OrganisationDetails,
+  OrganisationContact,
   LeadershipStep,
   OwnershipStep,
   ReviewStep,
