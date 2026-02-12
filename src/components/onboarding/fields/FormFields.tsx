@@ -49,6 +49,7 @@ export type DateFieldDef = {
   minYear?: number;
   maxDate?: Date;
   required?: boolean;
+  minAge?: number;
 };
 
 export type EmailFieldDef = {
