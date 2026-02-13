@@ -2,6 +2,7 @@
 --   1. rls_auto_enable()        -- event trigger: auto-enable RLS on every new public table
 --   2. moddatetime extension    -- auto-set updated_at on row update
 --   3. set_auth_user_id()       -- trigger fn: auto-set user_id to auth.uid() on insert
+--   4. authorize()              -- RLS helper: check entity-scoped role from JWT orgs claim
 
 -- =============================================================================
 -- 1. Event trigger: automatically enable RLS on every new table in the public schema.
@@ -80,5 +81,55 @@ as $$
 begin
   new.user_id := auth.uid();
   return new;
+end;
+$$;
+
+-- =============================================================================
+-- 4. RLS helper: check entity-scoped role from the JWT orgs claim.
+--
+--    The custom_access_token_hook (see 03_rbac.sql) embeds an `orgs` claim in
+--    the JWT with the structure: { "<entity_id>": { "role": "owner" }, ... }
+--
+--    This function reads from the JWT directly, avoiding a subquery against
+--    entity_members on every RLS check. This is faster and removes the need
+--    for per-table EXISTS subqueries.
+--
+--    Usage in RLS policies:
+--      authorize('member', legal_entity_id)  -- any role = member
+--      authorize('owner',  legal_entity_id)  -- must be owner
+--
+--    SECURITY DEFINER so the function can read auth.jwt() regardless of the
+--    caller's permissions. search_path locked to '' to prevent injection.
+-- =============================================================================
+create or replace function public.authorize(
+  required_role text,
+  entity_id uuid
+)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  user_role text;
+begin
+  -- Extract the user's role for this entity from the JWT orgs claim.
+  -- Returns NULL if the user has no membership for this entity.
+  user_role := ((auth.jwt() -> 'orgs') -> entity_id::text) ->> 'role';
+
+  if user_role is null then
+    return false;
+  end if;
+
+  -- 'owner' satisfies both 'owner' and 'member' checks.
+  -- 'member' would only satisfy 'member' (when more roles are added).
+  -- For now entity_member_role only has 'owner', but this is forward-compatible.
+  if required_role = 'owner' then
+    return user_role = 'owner';
+  end if;
+
+  -- Any valid role satisfies 'member' (i.e., the user belongs to the entity).
+  return true;
 end;
 $$;

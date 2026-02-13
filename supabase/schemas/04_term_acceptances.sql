@@ -17,24 +17,13 @@ create trigger handle_user_id
   for each row execute function set_auth_user_id();
 
 -- Members can read term acceptances for their entities.
+-- 'member' check: any role in the entity's orgs claim satisfies this.
 create policy "Members can read term acceptances for their entities"
   on public.term_acceptances for select
-  using (
-    exists (
-      select 1 from public.entity_members
-      where entity_members.legal_entity_id = term_acceptances.legal_entity_id
-        and entity_members.user_id = auth.uid()
-    )
-  );
+  using (public.authorize('member', legal_entity_id));
 
 -- Owners can insert term acceptances for their entities.
+-- 'owner' check: only users with the owner role can accept terms.
 create policy "Owners can insert term acceptances for their entities"
   on public.term_acceptances for insert
-  with check (
-    exists (
-      select 1 from public.entity_members
-      where entity_members.legal_entity_id = term_acceptances.legal_entity_id
-        and entity_members.user_id = auth.uid()
-        and entity_members.role = 'owner'
-    )
-  );
+  with check (public.authorize('owner', legal_entity_id));

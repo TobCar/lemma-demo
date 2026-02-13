@@ -8,43 +8,19 @@ create policy "Users can read their own memberships"
   using (auth.uid() = user_id);
 
 -- Owners can add members to their entities.
--- NOTE: This policy self-references entity_members. It works because the SELECT
--- policy (user_id = auth.uid()) aligns with the ownership check here. If the
--- SELECT policy changes, re-verify this INSERT policy still behaves correctly.
 create policy "Owners can insert entity members"
   on public.entity_members for insert
-  with check (
-    exists (
-      select 1 from public.entity_members as em
-      where em.legal_entity_id = entity_members.legal_entity_id
-        and em.user_id = auth.uid()
-        and em.role = 'owner'
-    )
-  );
+  with check (public.authorize('owner', legal_entity_id));
 
 -- Owners can update members in their entities (e.g. change roles).
 create policy "Owners can update entity members"
   on public.entity_members for update
-  using (
-    exists (
-      select 1 from public.entity_members as em
-      where em.legal_entity_id = entity_members.legal_entity_id
-        and em.user_id = auth.uid()
-        and em.role = 'owner'
-    )
-  );
+  using (public.authorize('owner', legal_entity_id));
 
 -- Owners can remove members from their entities.
 create policy "Owners can delete entity members"
   on public.entity_members for delete
-  using (
-    exists (
-      select 1 from public.entity_members as em
-      where em.legal_entity_id = entity_members.legal_entity_id
-        and em.user_id = auth.uid()
-        and em.role = 'owner'
-    )
-  );
+  using (public.authorize('owner', legal_entity_id));
 
 -- ---------------------------------------------------------------------------
 -- RLS policies for legal_entities
@@ -53,13 +29,7 @@ create policy "Owners can delete entity members"
 -- Members can read their own legal entities.
 create policy "Members can read their legal entities"
   on public.legal_entities for select
-  using (
-    exists (
-      select 1 from public.entity_members
-      where entity_members.legal_entity_id = legal_entities.id
-        and entity_members.user_id = auth.uid()
-    )
-  );
+  using (public.authorize('member', id));
 
 -- ---------------------------------------------------------------------------
 -- Auth hook: embed the user's organization memberships in the JWT.
