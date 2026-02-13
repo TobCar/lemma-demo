@@ -6,7 +6,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { FormFields } from "@/components/onboarding/fields";
 import { contactFields } from "@/data/onboarding/new-organization";
-import { validateFields } from "@/lib/validation";
+import { validateField, validateFields } from "@/lib/validation";
 
 export function OrganizationContact() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
@@ -22,6 +22,13 @@ export function OrganizationContact() {
       updateBusinessProfile({ [key]: value });
     }
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const handleBlur = (key: string) => {
+    const def = contactFields.flat().find((f) => f.key === key);
+    if (!def) return;
+    const error = validateField(def, businessProfile);
+    setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
   };
 
   const validate = () => {
@@ -50,6 +57,7 @@ export function OrganizationContact() {
         values={businessProfile}
         onChange={handleChange}
         errors={errors}
+        onBlur={handleBlur}
       />
 
       <div className="onboarding-button-row">

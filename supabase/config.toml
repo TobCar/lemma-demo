@@ -250,21 +250,21 @@ max_frequency = "5s"
 # 4152127777 = "123456"
 
 # Configure logged in session timeouts.
-# [auth.sessions]
-# Force log out after the specified duration.
-# timebox = "24h"
+[auth.sessions]
+# Force log out after the specified duration, regardless of activity.
+timebox = "24h"
 # Force log out if the user has been inactive longer than the specified duration.
-# inactivity_timeout = "8h"
+inactivity_timeout = "30m"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
 # [auth.hook.before_user_created]
 # enabled = true
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
 
-# This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+# RBAC: This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
@@ -320,29 +320,6 @@ email_optional = false
 [auth.web3.solana]
 enabled = false
 
-# Use Firebase Auth as a third-party provider alongside Supabase Auth.
-[auth.third_party.firebase]
-enabled = false
-# project_id = "my-firebase-project"
-
-# Use Auth0 as a third-party provider alongside Supabase Auth.
-[auth.third_party.auth0]
-enabled = false
-# tenant = "my-auth0-tenant"
-# tenant_region = "us"
-
-# Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
-[auth.third_party.aws_cognito]
-enabled = false
-# user_pool_id = "my-user-pool-id"
-# user_pool_region = "us-east-1"
-
-# Use Clerk as a third-party provider alongside Supabase Auth.
-[auth.third_party.clerk]
-enabled = false
-# Obtain from https://clerk.com/setup/supabase
-# domain = "example.clerk.accounts.dev"
-
 # OAuth server configuration
 [auth.oauth_server]
 # Enable OAuth server functionality
@@ -371,16 +348,3 @@ enabled = true
 port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
-
-# Experimental features may be deprecated any time
-[experimental]
-# Configures Postgres storage engine to use OrioleDB (S3)
-orioledb_version = ""
-# Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
-s3_host = "env(S3_HOST)"
-# Configures S3 bucket region, eg. us-east-1
-s3_region = "env(S3_REGION)"
-# Configures AWS_ACCESS_KEY_ID for S3 bucket
-s3_access_key = "env(S3_ACCESS_KEY)"
-# Configures AWS_SECRET_ACCESS_KEY for S3 bucket
-s3_secret_key = "env(S3_SECRET_KEY)"

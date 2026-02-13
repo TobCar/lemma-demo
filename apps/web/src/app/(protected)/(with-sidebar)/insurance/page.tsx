@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PaymentDetail } from "@/components/insurance/PaymentDetail";
 import { insurancePayments, InsurancePayment } from "@/data/insurancePayments";
 import { cn } from "@/lib/utils";
@@ -29,21 +28,9 @@ export default function InsurancePaymentsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [selectedPayor, setSelectedPayor] = useState<string>("All Payors");
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-
   const handleRowClick = (payment: InsurancePayment) => {
     setSelectedPayment(payment);
     setDetailOpen(true);
-  };
-
-  const handleCheckboxChange = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedRows);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedRows(newSelected);
   };
 
   const uniquePayors = [
@@ -173,22 +160,7 @@ export default function InsurancePaymentsPage() {
         className="bg-card rounded-xl border border-border shadow-soft overflow-hidden"
       >
         {/* Table Header */}
-        <div className="grid grid-cols-[48px_140px_1fr_140px_140px_1fr_140px] gap-4 px-6 py-4 border-b border-border">
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={
-                selectedRows.size === paginatedItems.length &&
-                paginatedItems.length > 0
-              }
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  setSelectedRows(new Set(paginatedItems.map((p) => p.id)));
-                } else {
-                  setSelectedRows(new Set());
-                }
-              }}
-            />
-          </div>
+        <div className="grid grid-cols-[140px_1fr_140px_140px_1fr_140px] gap-4 px-6 py-4 border-b border-border">
           <div className="text-xs font-normal text-muted-foreground">
             Settlement Date
           </div>
@@ -216,19 +188,8 @@ export default function InsurancePaymentsPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.03 * index }}
               onClick={() => handleRowClick(payment)}
-              className="grid grid-cols-[48px_140px_1fr_140px_140px_1fr_140px] gap-4 px-6 py-4 hover:bg-secondary/50 cursor-pointer transition-colors"
+              className="grid grid-cols-[140px_1fr_140px_140px_1fr_140px] gap-4 px-6 py-4 hover:bg-secondary/50 cursor-pointer transition-colors"
             >
-              <div
-                className="flex items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Checkbox
-                  checked={selectedRows.has(payment.id)}
-                  onCheckedChange={(checked) =>
-                    handleCheckboxChange(payment.id, checked as boolean)
-                  }
-                />
-              </div>
               <div className="text-sm text-muted-foreground">
                 {payment.settlementDate}
               </div>

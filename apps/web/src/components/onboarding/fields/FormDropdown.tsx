@@ -45,6 +45,7 @@ interface FormDropdownProps {
   required?: boolean;
   description?: string;
   error?: string;
+  onBlur?: () => void;
 }
 
 export function FormDropdown({
@@ -59,6 +60,7 @@ export function FormDropdown({
   required,
   description,
   error,
+  onBlur,
 }: FormDropdownProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
@@ -68,9 +70,17 @@ export function FormDropdown({
       <div className="form-field">
         <FormLabel required={required}>{label}</FormLabel>
         {description && (
-          <p className="text-[13px] text-muted-foreground mt-1">{description}</p>
+          <p className="text-[13px] text-muted-foreground mt-1">
+            {description}
+          </p>
         )}
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+          open={open}
+          onOpenChange={(isOpen) => {
+            setOpen(isOpen);
+            if (!isOpen) onBlur?.();
+          }}
+        >
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -141,7 +151,13 @@ export function FormDropdown({
       {description && (
         <p className="text-[13px] text-muted-foreground mt-1">{description}</p>
       )}
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onValueChange={onChange}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) onBlur?.();
+        }}
+      >
         <SelectTrigger className="form-select-trigger">
           <SelectValue placeholder={placeholder ?? "Select..."} />
         </SelectTrigger>

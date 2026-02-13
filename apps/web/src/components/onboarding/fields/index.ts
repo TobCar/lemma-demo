@@ -15,5 +15,5 @@ export {
   type DateFieldDef,
   type EmailFieldDef,
   type UrlFieldDef,
-  type ShieldBannerFieldDef
+  type ShieldBannerFieldDef,
 } from "./FormFields";

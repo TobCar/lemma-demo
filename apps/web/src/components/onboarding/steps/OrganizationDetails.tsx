@@ -8,7 +8,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -19,15 +19,15 @@ import {
   FormText,
   FormDropdown,
   FormFileUpload,
-  FieldError
+  FieldError,
 } from "@/components/onboarding/fields";
 import {
   detailsBaseFields,
   detailsOrgNpiField,
   detailsIndividualNpiField,
-  stateOptions
+  stateOptions,
 } from "@/data/onboarding/new-organization";
-import { validateFields } from "@/lib/validation";
+import { validateField, validateFields } from "@/lib/validation";
 
 export function OrganizationDetails() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
@@ -35,7 +35,7 @@ export function OrganizationDetails() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedOrgType = ORGANIZATION_TYPES.find(
-    (o) => o.value === businessProfile.organizationType
+    (o) => o.value === businessProfile.organizationType,
   );
   const isSoleProprietorship =
     selectedOrgType?.logicBranch === "skip_beneficial_owners";
@@ -44,15 +44,48 @@ export function OrganizationDetails() {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
+  const handleBlur = (key: string) => {
+    const allFields = [
+      ...detailsBaseFields,
+      ...detailsOrgNpiField,
+      ...detailsIndividualNpiField,
+    ];
+    const def = allFields.flat().find((f) => f.key === key);
+    if (!def) return;
+    const error = validateField(def, businessProfile);
+    setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
+  };
+
+  const handleNpiBlur = () => {
+    const npiKey =
+      isSoleProprietorship && businessProfile.npiType === "type1"
+        ? "individualNpi"
+        : "practiceNpi";
+    const value = businessProfile[npiKey];
+    const digits = (value || "").replace(/\D/g, "");
+    if (!digits) {
+      setErrors((prev) => ({ ...prev, npi: "NPI is required" }));
+    } else if (digits.length !== 10) {
+      setErrors((prev) => ({
+        ...prev,
+        npi: "NPI must be exactly 10 digits",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, npi: "" }));
+    }
+  };
+
   const handleStateChange = (value: string) => {
     const currentOrgType = ORGANIZATION_TYPES.find(
-      (o) => o.value === businessProfile.organizationType
+      (o) => o.value === businessProfile.organizationType,
     );
     const willBeRestricted = currentOrgType?.restrictedStates?.includes(value);
 
     updateBusinessProfile({
       incorporationState: value,
-      organizationType: willBeRestricted ? "" : businessProfile.organizationType
+      organizationType: willBeRestricted
+        ? ""
+        : businessProfile.organizationType,
     });
     clearError("incorporationState");
   };
@@ -71,7 +104,7 @@ export function OrganizationDetails() {
 
     const newErrors = validateFields(
       [...detailsBaseFields, ...npiFields],
-      businessProfile
+      businessProfile,
     );
 
     // Custom rule: EIN is not required if SS-4 file is uploaded
@@ -124,6 +157,7 @@ export function OrganizationDetails() {
         required
         placeholder="Select a state"
         error={errors.incorporationState}
+        onBlur={() => handleBlur("incorporationState")}
       />
 
       {isSoleProprietorship ? (
@@ -161,10 +195,11 @@ export function OrganizationDetails() {
                   value={businessProfile.practiceNpi}
                   onChange={(e) => {
                     updateBusinessProfile({
-                      practiceNpi: formatNPI(e.target.value)
+                      practiceNpi: formatNPI(e.target.value),
                     });
                     clearError("npi");
                   }}
+                  onBlur={handleNpiBlur}
                   inputMode="numeric"
                   className="form-input"
                   maxLength={10}
@@ -183,10 +218,11 @@ export function OrganizationDetails() {
                   value={businessProfile.individualNpi}
                   onChange={(e) => {
                     updateBusinessProfile({
-                      individualNpi: formatNPI(e.target.value)
+                      individualNpi: formatNPI(e.target.value),
                     });
                     clearError("npi");
                   }}
+                  onBlur={handleNpiBlur}
                   inputMode="numeric"
                   className="form-input"
                   maxLength={10}
@@ -208,10 +244,11 @@ export function OrganizationDetails() {
             value={businessProfile.practiceNpi}
             onChange={(e) => {
               updateBusinessProfile({
-                practiceNpi: formatNPI(e.target.value)
+                practiceNpi: formatNPI(e.target.value),
               });
               clearError("npi");
             }}
+            onBlur={handleNpiBlur}
             inputMode="numeric"
             className="form-input"
             maxLength={10}
@@ -237,6 +274,7 @@ export function OrganizationDetails() {
         required
         description="This must match the IRS SS-4 letter for your practice."
         error={errors.ein}
+        onBlur={() => handleBlur("ein")}
       />
 
       <FormFileUpload

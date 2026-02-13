@@ -15,6 +15,7 @@ interface FormTextProps {
   required?: boolean;
   description?: string;
   error?: string;
+  onBlur?: () => void;
 }
 
 export function FormText({
@@ -27,6 +28,7 @@ export function FormText({
   required,
   description,
   error,
+  onBlur,
 }: FormTextProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
@@ -37,18 +39,26 @@ export function FormText({
   // e.g. SSN "123-45-6789" = 9 digits + 2 dashes = 11 chars
   const maxLengthForFormat = (fmt: FormatterKey): number | undefined => {
     switch (fmt) {
-      case "ssn": return 11;
-      case "ein": return 10;
-      case "npi": return 10;
-      case "phone": return 14;
-      case "zip": return 5;
+      case "ssn":
+        return 11;
+      case "ein":
+        return 10;
+      case "npi":
+        return 10;
+      case "phone":
+        return 14;
+      case "zip":
+        return 5;
     }
   };
 
   const numericFormats: FormatterKey[] = ["ssn", "ein", "npi", "zip"];
-  const resolvedInputMode = format === "phone" ? "tel" as const
-    : format && numericFormats.includes(format) ? "numeric" as const
-    : undefined;
+  const resolvedInputMode =
+    format === "phone"
+      ? ("tel" as const)
+      : format && numericFormats.includes(format)
+        ? ("numeric" as const)
+        : undefined;
 
   return (
     <div className="form-field">
@@ -59,6 +69,7 @@ export function FormText({
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
+        onBlur={onBlur}
         className={`form-input${format ? " masked-input" : ""}`}
         maxLength={format ? maxLengthForFormat(format) : undefined}
       />

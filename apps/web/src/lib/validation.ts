@@ -88,7 +88,10 @@ function validateFieldDef(
         const today = new Date();
         let age = today.getFullYear() - birth.getFullYear();
         const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birth.getDate())
+        ) {
           age--;
         }
         if (age < def.minAge) {
@@ -156,6 +159,16 @@ function validateFieldDef(
       return;
     }
   }
+}
+
+export function validateField(
+  def: FieldDef,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  values: Record<string, any>,
+): string | undefined {
+  const errors: Record<string, string> = {};
+  validateFieldDef(def, values, errors);
+  return errors[def.key];
 }
 
 export function validateFields(

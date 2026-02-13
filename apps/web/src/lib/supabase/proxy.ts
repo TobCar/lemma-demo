@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateAuthSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
-    request,
+    request
   });
 
   // With Fluid compute, don't put this client in a global environment
@@ -18,17 +18,17 @@ export async function updateAuthSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
+            request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
-            request,
+            request
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            supabaseResponse.cookies.set(name, value, options)
           );
-        },
-      },
-    },
+        }
+      }
+    }
   );
 
   // Do not run code between createServerClient and
@@ -40,10 +40,21 @@ export async function updateAuthSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+
+  // ── API routes: enforce auth, but return JSON instead of redirects ──
+  if (isApiRoute) {
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return supabaseResponse;
+  }
+
+  // ── Page routes ──
+
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
 
   if (!user && !isAuthRoute) {
-    // no user, redirect to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirectTo", request.nextUrl.pathname);
@@ -51,10 +62,21 @@ export async function updateAuthSession(request: NextRequest) {
   }
 
   if (user && isAuthRoute) {
-    // logged-in user on an auth page, redirect to home (or redirectTo destination)
     const url = request.nextUrl.clone();
     url.pathname = request.nextUrl.searchParams.get("redirectTo") || "/";
     url.searchParams.delete("redirectTo");
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect users who haven't completed onboarding.
+  // The `orgs` claim is set by the custom_access_token_hook. It's an empty
+  // object when the user has no entity memberships.
+  const isOnboardingRoute = request.nextUrl.pathname.startsWith("/onboarding");
+  const orgs = (user?.orgs ?? {}) as Record<string, unknown>;
+
+  if (user && !isOnboardingRoute && Object.keys(orgs).length === 0) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/onboarding/new-organization";
     return NextResponse.redirect(url);
   }
 

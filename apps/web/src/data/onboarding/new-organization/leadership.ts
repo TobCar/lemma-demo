@@ -16,11 +16,16 @@ export const leadershipFields: FieldRow[] = [
       key: "title",
       label: "Title",
       placeholder: "e.g. CEO, President, Managing Director",
-      required: true,
     },
   ],
   [
-    { type: "date", key: "dateOfBirth", label: "Date of birth", required: true, minAge: 18 },
+    {
+      type: "date",
+      key: "dateOfBirth",
+      label: "Date of birth",
+      required: true,
+      minAge: 18,
+    },
     {
       type: "text",
       key: "ssn",

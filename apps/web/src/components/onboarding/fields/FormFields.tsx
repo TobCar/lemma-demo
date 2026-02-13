@@ -95,6 +95,7 @@ interface FormFieldsProps {
   values: Record<string, any>;
   onChange: (key: string, value: unknown) => void;
   errors?: Record<string, string>;
+  onBlur?: (key: string) => void;
 }
 
 function renderField(
@@ -102,8 +103,10 @@ function renderField(
   values: Record<string, unknown>,
   onChange: (key: string, value: unknown) => void,
   errors?: Record<string, string>,
+  onBlur?: (key: string) => void,
 ) {
   const error = errors?.[def.key];
+  const handleBlur = onBlur ? () => onBlur(def.key) : undefined;
 
   switch (def.type) {
     case "text":
@@ -119,6 +122,7 @@ function renderField(
           required={def.required}
           description={def.description}
           error={error}
+          onBlur={handleBlur}
         />
       );
     case "dropdown":
@@ -135,6 +139,7 @@ function renderField(
           required={def.required}
           description={def.description}
           error={error}
+          onBlur={handleBlur}
         />
       );
     case "date":
@@ -149,6 +154,7 @@ function renderField(
           maxDate={def.maxDate}
           required={def.required}
           error={error}
+          onBlur={handleBlur}
         />
       );
     case "email":
@@ -163,6 +169,7 @@ function renderField(
           required={def.required}
           description={def.description}
           error={error}
+          onBlur={handleBlur}
         />
       );
     case "url":
@@ -176,6 +183,7 @@ function renderField(
           required={def.required}
           description={def.description}
           error={error}
+          onBlur={handleBlur}
         />
       );
     case "shield-banner":
@@ -195,6 +203,7 @@ function renderField(
           required={def.required}
           description={def.description}
           error={error}
+          onBlur={handleBlur}
         />
       );
   }
@@ -206,20 +215,28 @@ const gridColsClass: Record<number, string> = {
   4: "grid grid-cols-4 gap-4",
 };
 
-export function FormFields({ fields, values, onChange, errors }: FormFieldsProps) {
+export function FormFields({
+  fields,
+  values,
+  onChange,
+  errors,
+  onBlur,
+}: FormFieldsProps) {
   return (
     <>
       {fields.map((row, i) => {
         if (row.length === 1) {
           return (
             <Fragment key={row[0].key}>
-              {renderField(row[0], values, onChange, errors)}
+              {renderField(row[0], values, onChange, errors, onBlur)}
             </Fragment>
           );
         }
         return (
           <div key={i} className={gridColsClass[row.length]}>
-            {row.map((def) => renderField(def, values, onChange, errors))}
+            {row.map((def) =>
+              renderField(def, values, onChange, errors, onBlur),
+            )}
           </div>
         );
       })}

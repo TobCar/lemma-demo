@@ -22,6 +22,7 @@ interface FormDateProps {
   maxDate?: Date;
   required?: boolean;
   error?: string;
+  onBlur?: () => void;
 }
 
 export function FormDate({
@@ -33,13 +34,18 @@ export function FormDate({
   maxDate,
   required,
   error,
+  onBlur,
 }: FormDateProps) {
   const max = maxDate ?? new Date();
 
   return (
     <div className="form-field">
       <FormLabel required={required}>{label}</FormLabel>
-      <Popover>
+      <Popover
+        onOpenChange={(isOpen) => {
+          if (!isOpen) onBlur?.();
+        }}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"

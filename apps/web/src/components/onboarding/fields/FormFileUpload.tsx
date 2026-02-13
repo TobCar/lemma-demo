@@ -24,7 +24,7 @@ export function FormFileUpload({
   onChange,
   prompt,
   required,
-  error
+  error,
 }: FormFileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 

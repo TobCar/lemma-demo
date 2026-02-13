@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { CreateLegalEntityRequest } from "@/types/onboarding";
 import { uploadFile } from "@/lib/uploadFile";
+import { createClient } from "@/lib/supabase/client";
 
 export function ReviewStep() {
   const {
@@ -19,11 +20,11 @@ export function ReviewStep() {
     setCurrentStep,
     setIsSubmitting,
     setIsComplete,
-    isSubmitting
+    isSubmitting,
   } = useOnboarding();
   const { businessProfile, owners, identityVerification } = formData;
   const [termsAccepted, setTermsAccepted] = useState(
-    identityVerification.termsAccepted
+    identityVerification.termsAccepted,
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +48,7 @@ export function ReviewStep() {
     setTermsAccepted(checked);
     updateIdentityVerification({
       termsAccepted: checked,
-      termsTimestamp: checked ? new Date().toISOString() : ""
+      termsTimestamp: checked ? new Date().toISOString() : "",
     });
   };
 
@@ -59,7 +60,7 @@ export function ReviewStep() {
 
     try {
       const orgType = ORGANIZATION_TYPES.find(
-        (o) => o.value === businessProfile.organizationType
+        (o) => o.value === businessProfile.organizationType,
       );
       const npi =
         businessProfile.npiType === "type1"
@@ -79,19 +80,23 @@ export function ReviewStep() {
         practiceNpi: npi,
         naicsCode: resolveNaicsCode(businessProfile.naicsCode),
         ipAddress: identityVerification.termsIpAddress,
-        ss4FileKey
+        ss4FileKey,
       };
 
       const response = await fetch("/api/legal-entities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || "Something went wrong");
       }
+
+      // Refresh the session so the JWT picks up the new user_role claim
+      const supabase = createClient();
+      await supabase.auth.refreshSession();
 
       setIsComplete(true);
     } catch (err) {

@@ -8,7 +8,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormFields } from "@/components/onboarding/fields";
 import { leadershipFields } from "@/data/onboarding/new-organization";
-import { validateFields } from "@/lib/validation";
+import { validateField, validateFields } from "@/lib/validation";
 
 export function LeadershipStep() {
   const { formData, updateOwner, setCurrentStep } = useOnboarding();
@@ -22,6 +22,13 @@ export function LeadershipStep() {
       updateOwner(leader.id, { [key]: value });
     }
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const handleBlur = (key: string) => {
+    const def = leadershipFields.flat().find((f) => f.key === key);
+    if (!def) return;
+    const error = validateField(def, leader);
+    setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
   };
 
   const toggleOwnership = (checked: boolean) => {
@@ -71,6 +78,7 @@ export function LeadershipStep() {
         values={leader}
         onChange={handleChange}
         errors={errors}
+        onBlur={handleBlur}
       />
 
       <div className="form-field">

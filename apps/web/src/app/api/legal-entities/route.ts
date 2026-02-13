@@ -21,15 +21,6 @@ const createLegalEntitySchema = fieldsToSchema([
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: authError
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -50,26 +41,24 @@ export async function POST(request: Request) {
     console.log("SS-4 file uploaded to S3:", body.ss4FileKey);
   }
 
-  const { data: entity, error: entityError } = await supabase
-    .from("legal_entities")
-    .insert({
-      name: body.legalBusinessName,
-      website: body.url || null,
-      business_phone: body.businessPhone || null,
-      structure: body.organizationType,
-      npi: body.practiceNpi,
-      naics_code: body.naicsCode || null,
-      owner_user_id: user.id
-    })
-    .select("id")
-    .single();
+  const { data: entityId, error: entityError } = await supabase.rpc(
+    "create_legal_entity_with_owner",
+    {
+      entity_name: body.legalBusinessName,
+      entity_structure: body.organizationType,
+      entity_npi: body.practiceNpi,
+      entity_website: body.url || null,
+      entity_business_phone: body.businessPhone || null,
+      entity_naics_code: body.naicsCode || null
+    }
+  );
 
   if (entityError) {
     return safeErrorResponse(entityError.message, 500);
   }
 
   const { error: termsError } = await supabase.from("term_acceptances").insert({
-    legal_entity_id: entity.id,
+    legal_entity_id: entityId,
     ip_address: body.ipAddress || null
   });
 
@@ -77,5 +66,5 @@ export async function POST(request: Request) {
     return safeErrorResponse(termsError.message, 500);
   }
 
-  return NextResponse.json({ id: entity.id });
+  return NextResponse.json({ id: entityId });
 }

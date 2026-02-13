@@ -82,29 +82,3 @@ begin
   return new;
 end;
 $$;
-
--- =============================================================================
--- 4. Trigger function: create a public.profiles row when a new auth user signs up.
---
---    Runs as SECURITY DEFINER because the trigger fires in the auth schema
---    context and needs to write into the public schema.
---    search_path is locked to '' to prevent search-path injection.
---
---    Only the id is passed — role defaults to 'owner', created_at to now().
--- =============================================================================
-create or replace function handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  insert into "public"."profiles" ("id")
-  values (new.id);
-  return new;
-end;
-$$;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function handle_new_user();

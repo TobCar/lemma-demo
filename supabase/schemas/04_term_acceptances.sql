@@ -16,24 +16,25 @@ create trigger handle_user_id
   before insert on "public"."term_acceptances"
   for each row execute function set_auth_user_id();
 
--- Owners can read term acceptances for entities they own.
-create policy "Owners can read term acceptances for their entities"
+-- Members can read term acceptances for their entities.
+create policy "Members can read term acceptances for their entities"
   on public.term_acceptances for select
   using (
     exists (
-      select 1 from public.legal_entities
-      where legal_entities.id = term_acceptances.legal_entity_id
-        and legal_entities.owner_user_id = auth.uid()
+      select 1 from public.entity_members
+      where entity_members.legal_entity_id = term_acceptances.legal_entity_id
+        and entity_members.user_id = auth.uid()
     )
   );
 
--- Authenticated users can insert term acceptances for their own legal entities.
-create policy "Authenticated users can insert term acceptances for their own legal entities"
+-- Owners can insert term acceptances for their entities.
+create policy "Owners can insert term acceptances for their entities"
   on public.term_acceptances for insert
   with check (
     exists (
-      select 1 from public.legal_entities
-      where legal_entities.id = term_acceptances.legal_entity_id
-        and legal_entities.owner_user_id = auth.uid()
+      select 1 from public.entity_members
+      where entity_members.legal_entity_id = term_acceptances.legal_entity_id
+        and entity_members.user_id = auth.uid()
+        and entity_members.role = 'owner'
     )
   );

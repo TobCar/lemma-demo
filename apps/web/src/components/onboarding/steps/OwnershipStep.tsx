@@ -8,7 +8,7 @@ import { useState } from "react";
 import { OwnerData } from "@/types/onboarding";
 import { FormFields } from "@/components/onboarding/fields";
 import { ownershipEditFields } from "@/data/onboarding/new-organization";
-import { validateFields } from "@/lib/validation";
+import { validateField, validateFields } from "@/lib/validation";
 
 export function OwnershipStep() {
   const { formData, addOwner, updateOwner, removeOwner, setCurrentStep } =
@@ -88,6 +88,14 @@ export function OwnershipStep() {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
+  const handleEditBlur = (key: string) => {
+    if (!editingOwner) return;
+    const def = ownershipEditFields.flat().find((f) => f.key === key);
+    if (!def) return;
+    const error = validateField(def, editingOwner);
+    setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
+  };
+
   const validateEdit = () => {
     if (!editingOwner) return false;
     const newErrors = validateFields(ownershipEditFields, editingOwner);
@@ -120,6 +128,7 @@ export function OwnershipStep() {
           values={editingOwner}
           onChange={handleEditChange}
           errors={errors}
+          onBlur={handleEditBlur}
         />
 
         <div className="onboarding-button-row">

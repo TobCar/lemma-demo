@@ -13,14 +13,11 @@ const ALLOWED_TYPES = [
 export async function POST(request: Request) {
   const supabase = await createClient();
 
+  // Auth is enforced by the middleware. We still call getUser() here because
+  // we need user.id for the S3 key path.
   const {
-    data: { user },
-    error: authError
+    data: { user }
   } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   let body: { fileName: string; contentType: string; fileSize: number };
   try {
@@ -46,6 +43,7 @@ export async function POST(request: Request) {
 
   const key = `uploads/${user.id}/${Date.now()}-${body.fileName}`;
 
+  // TODO: Lock this endpoint so it only works if you still need to upload onboarding docs. Don't allow arbitrary storage.
   // TODO: Generate a real presigned PUT URL using the AWS SDK:
   //
   // import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";

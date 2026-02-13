@@ -28,6 +28,7 @@ interface FormAddressProps {
   required?: boolean;
   description?: string;
   error?: string;
+  onBlur?: () => void;
 }
 
 export function FormAddress({
@@ -37,12 +38,18 @@ export function FormAddress({
   required,
   description,
   error,
+  onBlur,
 }: FormAddressProps) {
   const update = (patch: Partial<AddressData>) =>
     onChange({ ...value, ...patch });
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) onBlur?.();
+      }}
+    >
       <div>
         {label && <FormLabel required={required}>{label}</FormLabel>}
         {description && (

@@ -11,7 +11,12 @@ export const ownershipEditFields: FieldRow[] = [
     },
   ],
   [
-    { type: "date", key: "dateOfBirth", label: "Date of birth", required: true },
+    {
+      type: "date",
+      key: "dateOfBirth",
+      label: "Date of birth",
+      required: true,
+    },
     {
       type: "text",
       key: "ssn",

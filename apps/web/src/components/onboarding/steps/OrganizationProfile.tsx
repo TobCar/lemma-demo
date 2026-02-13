@@ -10,7 +10,7 @@ import {
   profileFields,
   naicsOptions,
 } from "@/data/onboarding/new-organization";
-import { validateFields } from "@/lib/validation";
+import { validateField, validateFields } from "@/lib/validation";
 
 export function OrganizationProfile() {
   const { formData, updateBusinessProfile, setCurrentStep } = useOnboarding();
@@ -51,6 +51,13 @@ export function OrganizationProfile() {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
+  const handleBlur = (key: string) => {
+    const def = profileFields.flat().find((f) => f.key === key);
+    if (!def) return;
+    const error = validateField(def, businessProfile);
+    setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
+  };
+
   const validate = () => {
     const newErrors = validateFields(profileFields, businessProfile);
     setErrors(newErrors);
@@ -82,6 +89,7 @@ export function OrganizationProfile() {
           clearError("legalBusinessName");
         }}
         error={errors.legalBusinessName}
+        onBlur={() => handleBlur("legalBusinessName")}
       />
 
       <FormText
@@ -104,6 +112,7 @@ export function OrganizationProfile() {
         placeholder="Search for your type..."
         searchPlaceholder="Search healthcare types..."
         error={errors.naicsCode}
+        onBlur={() => handleBlur("naicsCode")}
       />
 
       <FormDropdown
@@ -123,6 +132,7 @@ export function OrganizationProfile() {
           ) : null
         }
         error={errors.organizationType}
+        onBlur={() => handleBlur("organizationType")}
       />
 
       <div className="onboarding-button-row">
