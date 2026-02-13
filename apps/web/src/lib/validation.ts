@@ -23,10 +23,9 @@ export function validateSSN(
   key: string,
   errors: Record<string, string>,
 ) {
-  const digits = ssn.replace(/\D/g, "");
-  if (!digits) {
+  if (!ssn) {
     errors[key] = "SSN is required";
-  } else if (digits.length !== 9) {
+  } else if (ssn.length !== 9) {
     errors[key] = "SSN must be exactly 9 digits";
   }
 }
@@ -52,12 +51,11 @@ export function validatePhone(
   key: string,
   errors: Record<string, string>,
 ) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) {
+  if (!phone) {
     errors[key] = "Phone number is required";
-  } else if (digits.length !== 10) {
+  } else if (phone.length !== 10) {
     errors[key] = "Phone number must be exactly 10 digits";
-  } else if (PREMIUM_AREA_CODES.includes(digits.substring(0, 3))) {
+  } else if (PREMIUM_AREA_CODES.includes(phone.substring(0, 3))) {
     errors[key] = "Premium-rate numbers are not allowed";
   }
 }
@@ -131,13 +129,11 @@ function validateFieldDef(
         case "ssn":
           validateSSN(str, def.key, errors);
           break;
-        case "ein": {
-          const digits = str.replace(/\D/g, "");
-          if (digits.length !== 9) {
+        case "ein":
+          if (str.length !== 9) {
             errors[def.key] = "EIN must be exactly 9 digits";
           }
           break;
-        }
         case "npi": {
           const digits = str.replace(/\D/g, "");
           if (digits.length !== 10) {

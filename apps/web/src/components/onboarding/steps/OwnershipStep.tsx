@@ -3,114 +3,126 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowRight, ArrowLeft, Plus, Pencil, User } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Plus,
+  Pencil,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useState } from "react";
-import { OwnerData } from "@/types/onboarding";
+import type { PersonData, BeneficialOwnerData } from "@/types/onboarding";
 import { FormFields } from "@/components/onboarding/fields";
 import { ownershipEditFields } from "@/data/onboarding/new-organization";
 import { validateField, validateFields } from "@/lib/validation";
 
+const emptyPerson = (): PersonData => ({
+  name: "",
+  title: "",
+  dateOfBirth: null,
+  ssn: "",
+  address: { line1: "", line2: "", city: "", state: "", zip: "" },
+});
+
 export function OwnershipStep() {
-  const { formData, addOwner, updateOwner, removeOwner, setCurrentStep } =
-    useOnboarding();
+  const {
+    formData,
+    addBeneficialOwner,
+    updateBeneficialOwner,
+    removeBeneficialOwner,
+    setCurrentStep,
+  } = useOnboarding();
+
   const [allOwnersConfirmed, setAllOwnersConfirmed] = useState(false);
-  const [editingOwnerId, setEditingOwnerId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [localPerson, setLocalPerson] = useState<PersonData>(emptyPerson());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const leader = formData.owners[0];
-  const additionalOwners = formData.owners
-    .slice(1)
-    .filter((o) => o.prongs.includes("ownership"));
+  const { controlPerson, controlPersonOwnsBusiness, beneficialOwners } =
+    formData;
 
   const totalOwners =
-    (leader.prongs.includes("ownership") ? 1 : 0) + additionalOwners.length;
+    (controlPersonOwnsBusiness ? 1 : 0) + beneficialOwners.length;
   const MAX_OWNERS = 4;
 
-  const editingOwner = editingOwnerId
-    ? formData.owners.find((o) => o.id === editingOwnerId)
-    : null;
-
   const getMaskedSSN = (ssn: string) => {
-    const digits = ssn.replace(/-/g, "");
-    if (digits.length < 4)
+    if (ssn.length < 4)
       return "\u2022\u2022\u2022-\u2022\u2022-\u2022\u2022\u2022\u2022";
-    return `\u2022\u2022\u2022-\u2022\u2022-${digits.slice(-4)}`;
+    return `\u2022\u2022\u2022-\u2022\u2022-${ssn.slice(-4)}`;
   };
 
   const handleAddOwner = () => {
-    addOwner();
-    const newOwner = formData.owners[formData.owners.length - 1];
-    if (newOwner) {
-      updateOwner(newOwner.id, { prongs: ["ownership"] });
-    }
+    setLocalPerson(emptyPerson());
     setIsAddingNew(true);
-    setErrors({});
-    setTimeout(() => {
-      const updatedOwners = formData.owners;
-      const lastOwner = updatedOwners[updatedOwners.length - 1];
-      if (lastOwner) {
-        setEditingOwnerId(lastOwner.id);
-      }
-    }, 0);
-  };
-
-  const handleEditOwner = (owner: OwnerData) => {
-    setIsAddingNew(false);
-    setEditingOwnerId(owner.id);
+    setEditingId("new");
     setErrors({});
   };
 
-  const handleDoneEditing = () => {
-    setEditingOwnerId(null);
+  const handleEditOwner = (owner: BeneficialOwnerData) => {
+    setLocalPerson({
+      name: owner.name,
+      title: owner.title,
+      dateOfBirth: owner.dateOfBirth,
+      ssn: owner.ssn,
+      address: { ...owner.address },
+    });
     setIsAddingNew(false);
+    setEditingId(owner.id);
     setErrors({});
   };
 
-  const handleCancelAdding = () => {
-    if (isAddingNew && editingOwnerId) {
-      removeOwner(editingOwnerId);
-    }
-    setEditingOwnerId(null);
+  const handleCancel = () => {
+    setEditingId(null);
     setIsAddingNew(false);
+    setLocalPerson(emptyPerson());
     setErrors({});
   };
 
   const handleEditChange = (key: string, value: unknown) => {
-    if (!editingOwnerId) return;
     if (key === "address") {
-      updateOwner(editingOwnerId, {
-        address: value as OwnerData["address"],
-      });
+      setLocalPerson((prev) => ({
+        ...prev,
+        address: value as PersonData["address"],
+      }));
     } else {
-      updateOwner(editingOwnerId, { [key]: value });
+      setLocalPerson((prev) => ({ ...prev, [key]: value }));
     }
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
   const handleEditBlur = (key: string) => {
-    if (!editingOwner) return;
     const def = ownershipEditFields.flat().find((f) => f.key === key);
     if (!def) return;
-    const error = validateField(def, editingOwner);
+    const error = validateField(def, localPerson);
     setErrors((prev) => ({ ...prev, [key]: error ?? "" }));
   };
 
   const validateEdit = () => {
-    if (!editingOwner) return false;
-    const newErrors = validateFields(ownershipEditFields, editingOwner);
+    const newErrors = validateFields(ownershipEditFields, localPerson);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateEdit()) {
-      handleDoneEditing();
+    if (!validateEdit()) return;
+
+    if (isAddingNew) {
+      addBeneficialOwner(localPerson);
+    } else if (editingId) {
+      updateBeneficialOwner(editingId, localPerson);
     }
+
+    setEditingId(null);
+    setIsAddingNew(false);
+    setLocalPerson(emptyPerson());
+    setErrors({});
   };
 
-  if (editingOwnerId && editingOwner) {
+  // Editing/adding form view
+  if (editingId) {
     return (
       <form className="space-y-7" onSubmit={handleEditSubmit} noValidate>
         <div>
@@ -125,7 +137,7 @@ export function OwnershipStep() {
 
         <FormFields
           fields={ownershipEditFields}
-          values={editingOwner}
+          values={localPerson}
           onChange={handleEditChange}
           errors={errors}
           onBlur={handleEditBlur}
@@ -135,7 +147,7 @@ export function OwnershipStep() {
           <Button
             type="button"
             variant="outline"
-            onClick={handleCancelAdding}
+            onClick={handleCancel}
             className="btn-secondary"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -150,6 +162,7 @@ export function OwnershipStep() {
     );
   }
 
+  // List view
   return (
     <div className="space-y-7">
       <div>
@@ -163,7 +176,7 @@ export function OwnershipStep() {
       </div>
 
       <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
-        {leader.prongs.includes("ownership") && leader.name && (
+        {controlPersonOwnsBusiness && controlPerson.name && (
           <div className="flex items-center justify-between px-4 py-4 bg-background hover:bg-muted/30 transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
@@ -171,25 +184,17 @@ export function OwnershipStep() {
               </div>
               <div>
                 <p className="text-[14px] font-medium text-foreground">
-                  {leader.name}
+                  {controlPerson.name}
                 </p>
                 <p className="text-[13px] text-muted-foreground">
-                  {getMaskedSSN(leader.ssn)}
+                  {getMaskedSSN(controlPerson.ssn)} &middot; Control person
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEditOwner(leader)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
           </div>
         )}
 
-        {additionalOwners.map((owner) => (
+        {beneficialOwners.map((owner) => (
           <div
             key={owner.id}
             className="flex items-center justify-between px-4 py-4 bg-background hover:bg-muted/30 transition-colors"
@@ -207,14 +212,24 @@ export function OwnershipStep() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEditOwner(owner)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEditOwner(owner)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeBeneficialOwner(owner.id)}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         ))}
 

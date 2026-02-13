@@ -7,7 +7,7 @@ const ALLOWED_TYPES = [
   "application/pdf",
   "image/png",
   "image/jpeg",
-  "image/webp"
+  "image/webp",
 ];
 
 export async function POST(request: Request) {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   // Auth is enforced by the middleware. We still call getUser() here because
   // we need user.id for the S3 key path.
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   let body: { fileName: string; contentType: string; fileSize: number };
@@ -26,10 +26,10 @@ export async function POST(request: Request) {
     return safeErrorResponse("Invalid request body", 400);
   }
 
-  if (!body.fileName || !body.contentType || !body.fileSize) {
+  if (!body.fileName || !body.contentType || !body.fileSize || !user) {
     return safeErrorResponse(
       "fileName, contentType, and fileSize are required",
-      400
+      400,
     );
   }
 

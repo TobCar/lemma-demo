@@ -37,7 +37,6 @@ export interface BusinessProfileData {
   practiceNpi: string;
   individualNpi: string;
   npiType: "type2" | "type1" | null;
-  locationCount: number | null;
   sharedTaxId: boolean | null;
   businessEmail: string;
   businessPhone: string;
@@ -50,13 +49,11 @@ export interface BusinessProfileData {
   };
 }
 
-export interface OwnerData {
-  id: string;
+export interface PersonData {
   name: string;
   title: string;
   dateOfBirth: Date | null;
   ssn: string;
-  prongs: ("ownership" | "control")[];
   address: {
     line1: string;
     line2: string;
@@ -64,6 +61,10 @@ export interface OwnerData {
     state: string;
     zip: string;
   };
+}
+
+export interface BeneficialOwnerData extends PersonData {
+  id: string;
 }
 
 export interface IdentityVerificationData {
@@ -76,7 +77,9 @@ export interface IdentityVerificationData {
 
 export interface OnboardingFormData {
   businessProfile: BusinessProfileData;
-  owners: OwnerData[];
+  controlPerson: PersonData;
+  controlPersonOwnsBusiness: boolean;
+  beneficialOwners: BeneficialOwnerData[];
   identityVerification: IdentityVerificationData;
 }
 

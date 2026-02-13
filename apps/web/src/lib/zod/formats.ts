@@ -4,22 +4,16 @@ const stripNonDigits = z.string().transform((v) => v.replace(/\D/g, ""));
 
 const PREMIUM_AREA_CODES = ["900", "976"];
 
-export const zodPhone = stripNonDigits.pipe(
-  z
-    .string()
-    .length(10, "Phone number must be exactly 10 digits")
-    .refine((d) => !PREMIUM_AREA_CODES.includes(d.substring(0, 3)), {
-      message: "Premium-rate numbers are not allowed",
-    }),
-);
+export const zodPhone = z
+  .string()
+  .length(10, "Phone number must be exactly 10 digits")
+  .refine((d) => !PREMIUM_AREA_CODES.includes(d.substring(0, 3)), {
+    message: "Premium-rate numbers are not allowed",
+  });
 
-export const zodSSN = stripNonDigits.pipe(
-  z.string().length(9, "SSN must be exactly 9 digits"),
-);
+export const zodSSN = z.string().length(9, "SSN must be exactly 9 digits");
 
-export const zodEIN = stripNonDigits.pipe(
-  z.string().length(9, "EIN must be exactly 9 digits"),
-);
+export const zodEIN = z.string().length(9, "EIN must be exactly 9 digits");
 
 export const zodNPI = stripNonDigits.pipe(
   z.string().length(10, "NPI must be exactly 10 digits"),

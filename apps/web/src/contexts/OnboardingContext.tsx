@@ -1,8 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
-import type { OnboardingFormData, OwnerData } from "@/types/onboarding";
+import type {
+  OnboardingFormData,
+  PersonData,
+  BeneficialOwnerData,
+} from "@/types/onboarding";
 import { resolveNaicsCode } from "@/data/naicsCodes";
+
+const emptyPerson = (): PersonData => ({
+  name: "",
+  title: "",
+  dateOfBirth: null,
+  ssn: "",
+  address: { line1: "", line2: "", city: "", state: "", zip: "" },
+});
 
 interface OnboardingContextType {
   currentStep: number;
@@ -11,10 +23,14 @@ interface OnboardingContextType {
   updateBusinessProfile: (
     data: Partial<OnboardingFormData["businessProfile"]>,
   ) => void;
-  updateOwners: (owners: OwnerData[]) => void;
-  addOwner: () => void;
-  removeOwner: (id: string) => void;
-  updateOwner: (id: string, data: Partial<OwnerData>) => void;
+  setControlPerson: (data: PersonData) => void;
+  setControlPersonOwnsBusiness: (owns: boolean) => void;
+  addBeneficialOwner: (data: PersonData) => string;
+  updateBeneficialOwner: (
+    id: string,
+    data: Partial<BeneficialOwnerData>,
+  ) => void;
+  removeBeneficialOwner: (id: string) => void;
   updateIdentityVerification: (
     data: Partial<OnboardingFormData["identityVerification"]>,
   ) => void;
@@ -24,22 +40,6 @@ interface OnboardingContextType {
   setIsComplete: (complete: boolean) => void;
   getApiPayload: () => object;
 }
-
-const defaultOwner = (): OwnerData => ({
-  id: crypto.randomUUID(),
-  name: "",
-  title: "",
-  dateOfBirth: null,
-  ssn: "",
-  prongs: [],
-  address: {
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    zip: "",
-  },
-});
 
 const defaultFormData: OnboardingFormData = {
   businessProfile: {
@@ -53,19 +53,14 @@ const defaultFormData: OnboardingFormData = {
     practiceNpi: "",
     individualNpi: "",
     npiType: "type2",
-    locationCount: null,
     sharedTaxId: null,
     businessEmail: "",
     businessPhone: "",
-    address: {
-      line1: "",
-      line2: "",
-      city: "",
-      state: "",
-      zip: "",
-    },
+    address: { line1: "", line2: "", city: "", state: "", zip: "" },
   },
-  owners: [defaultOwner()],
+  controlPerson: emptyPerson(),
+  controlPersonOwnsBusiness: false,
+  beneficialOwners: [],
   identityVerification: {
     idFrontFile: null,
     idBackFile: null,
@@ -99,28 +94,39 @@ export function OnboardingProvider({
     [],
   );
 
-  const updateOwners = useCallback((owners: OwnerData[]) => {
-    setFormData((prev) => ({ ...prev, owners }));
+  const setControlPerson = useCallback((data: PersonData) => {
+    setFormData((prev) => ({ ...prev, controlPerson: data }));
   }, []);
 
-  const addOwner = useCallback(() => {
+  const setControlPersonOwnsBusiness = useCallback((owns: boolean) => {
+    setFormData((prev) => ({ ...prev, controlPersonOwnsBusiness: owns }));
+  }, []);
+
+  const addBeneficialOwner = useCallback((data: PersonData) => {
+    const id = crypto.randomUUID();
     setFormData((prev) => ({
       ...prev,
-      owners: [...prev.owners, defaultOwner()],
+      beneficialOwners: [...prev.beneficialOwners, { ...data, id }],
     }));
+    return id;
   }, []);
 
-  const removeOwner = useCallback((id: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      owners: prev.owners.filter((o) => o.id !== id),
-    }));
-  }, []);
+  const updateBeneficialOwner = useCallback(
+    (id: string, data: Partial<BeneficialOwnerData>) => {
+      setFormData((prev) => ({
+        ...prev,
+        beneficialOwners: prev.beneficialOwners.map((o) =>
+          o.id === id ? { ...o, ...data } : o,
+        ),
+      }));
+    },
+    [],
+  );
 
-  const updateOwner = useCallback((id: string, data: Partial<OwnerData>) => {
+  const removeBeneficialOwner = useCallback((id: string) => {
     setFormData((prev) => ({
       ...prev,
-      owners: prev.owners.map((o) => (o.id === id ? { ...o, ...data } : o)),
+      beneficialOwners: prev.beneficialOwners.filter((o) => o.id !== id),
     }));
   }, []);
 
@@ -135,13 +141,54 @@ export function OnboardingProvider({
   );
 
   const getApiPayload = useCallback(() => {
-    const { businessProfile, owners, identityVerification } = formData;
+    const {
+      businessProfile,
+      controlPerson,
+      controlPersonOwnsBusiness,
+      beneficialOwners,
+      identityVerification,
+    } = formData;
+
+    // Build deduplicated beneficial_owners array with correct prongs
+    const personsBySSN = new Map<
+      string,
+      {
+        person: PersonData;
+        prongs: Set<"control" | "ownership">;
+      }
+    >();
+
+    // Control person always has "control" prong
+    if (controlPerson.ssn) {
+      personsBySSN.set(controlPerson.ssn, {
+        person: controlPerson,
+        prongs: new Set(
+          controlPersonOwnsBusiness
+            ? (["control", "ownership"] as const)
+            : (["control"] as const),
+        ),
+      });
+    }
+
+    // Each beneficial owner has "ownership" prong
+    for (const owner of beneficialOwners) {
+      if (!owner.ssn) continue;
+      const existing = personsBySSN.get(owner.ssn);
+      if (existing) {
+        existing.prongs.add("ownership");
+      } else {
+        personsBySSN.set(owner.ssn, {
+          person: owner,
+          prongs: new Set(["ownership"] as const),
+        });
+      }
+    }
 
     const payload = {
       structure: "corporation",
       corporation: {
         name: businessProfile.legalBusinessName,
-        tax_identifier: businessProfile.ein.replace(/-/g, ""),
+        tax_identifier: businessProfile.ein,
         website: businessProfile.website || undefined,
         industry_code: resolveNaicsCode(businessProfile.naicsCode) || undefined,
         address: {
@@ -151,28 +198,30 @@ export function OnboardingProvider({
           state: businessProfile.address.state,
           zip: businessProfile.address.zip,
         },
-        beneficial_owners: owners.map((owner) => ({
-          company_title: owner.title || undefined,
-          individual: {
-            name: owner.name,
-            date_of_birth: owner.dateOfBirth
-              ? owner.dateOfBirth.toISOString().split("T")[0]
-              : "",
-            address: {
-              line1: owner.address.line1,
-              line2: owner.address.line2 || undefined,
-              city: owner.address.city,
-              state: owner.address.state,
-              zip: owner.address.zip,
-              country: "US",
+        beneficial_owners: Array.from(personsBySSN.values()).map(
+          ({ person, prongs }) => ({
+            company_title: person.title || undefined,
+            individual: {
+              name: person.name,
+              date_of_birth: person.dateOfBirth
+                ? person.dateOfBirth.toISOString().split("T")[0]
+                : "",
+              address: {
+                line1: person.address.line1,
+                line2: person.address.line2 || undefined,
+                city: person.address.city,
+                state: person.address.state,
+                zip: person.address.zip,
+                country: "US",
+              },
+              identification: {
+                method: "social_security_number",
+                number: person.ssn,
+              },
             },
-            identification: {
-              method: "social_security_number",
-              number: owner.ssn.replace(/-/g, ""),
-            },
-          },
-          prongs: owner.prongs,
-        })),
+            prongs: Array.from(prongs),
+          }),
+        ),
       },
       terms_agreements: identityVerification.termsAccepted
         ? [
@@ -195,10 +244,11 @@ export function OnboardingProvider({
         setCurrentStep,
         formData,
         updateBusinessProfile,
-        updateOwners,
-        addOwner,
-        removeOwner,
-        updateOwner,
+        setControlPerson,
+        setControlPersonOwnsBusiness,
+        addBeneficialOwner,
+        updateBeneficialOwner,
+        removeBeneficialOwner,
         updateIdentityVerification,
         isSubmitting,
         setIsSubmitting,

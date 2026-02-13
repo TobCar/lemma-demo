@@ -7,6 +7,7 @@ import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { US_STATES } from "@/data/usStates";
 import { HEALTHCARE_NAICS_CODES, resolveNaicsCode } from "@/data/naicsCodes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { displayEIN, displayPhone } from "@/lib/formatters";
 import { ArrowLeft, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { CreateLegalEntityRequest } from "@/types/onboarding";
@@ -22,7 +23,13 @@ export function ReviewStep() {
     setIsComplete,
     isSubmitting,
   } = useOnboarding();
-  const { businessProfile, owners, identityVerification } = formData;
+  const {
+    businessProfile,
+    controlPerson,
+    controlPersonOwnsBusiness,
+    beneficialOwners,
+    identityVerification,
+  } = formData;
   const [termsAccepted, setTermsAccepted] = useState(
     identityVerification.termsAccepted,
   );
@@ -106,8 +113,7 @@ export function ReviewStep() {
     }
   };
 
-  const leader = owners.find((o) => o.prongs.includes("control")) || owners[0];
-  const beneficialOwners = owners.filter((o) => o.prongs.includes("ownership"));
+  const leader = controlPerson;
 
   const formatBankAddress = (addr: typeof businessProfile.address) => {
     const line1 = addr.line1.toUpperCase();
@@ -118,10 +124,9 @@ export function ReviewStep() {
   };
 
   const getMaskedSSN = (ssn: string) => {
-    const digits = ssn.replace(/-/g, "");
-    if (digits.length < 4)
+    if (ssn.length < 4)
       return "\u2022\u2022\u2022-\u2022\u2022-\u2022\u2022\u2022\u2022";
-    return `\u2022\u2022\u2022-\u2022\u2022-${digits.slice(-4)}`;
+    return `\u2022\u2022\u2022-\u2022\u2022-${ssn.slice(-4)}`;
   };
 
   const getTypeLabel = (code: string) => {
@@ -143,7 +148,7 @@ export function ReviewStep() {
   };
 
   const bankAddress = formatBankAddress(businessProfile.address);
-  const ownerAddress = leader ? formatBankAddress(leader.address) : null;
+  const ownerAddress = leader.name ? formatBankAddress(leader.address) : null;
 
   return (
     <div className="space-y-8">
@@ -194,27 +199,6 @@ export function ReviewStep() {
             </span>
           </div>
           <div className="review-row">
-            <span className="review-label">Number of locations</span>
-            <span className="review-value">
-              {businessProfile.locationCount
-                ? `${businessProfile.locationCount} location${businessProfile.locationCount > 1 ? "s" : ""}`
-                : "\u2014"}
-            </span>
-          </div>
-          {businessProfile.locationCount !== null &&
-            businessProfile.locationCount > 1 && (
-              <div className="review-row">
-                <span className="review-label">Shared Tax ID</span>
-                <span className="review-value">
-                  {businessProfile.sharedTaxId === null
-                    ? "\u2014"
-                    : businessProfile.sharedTaxId
-                      ? "Yes"
-                      : "No"}
-                </span>
-              </div>
-            )}
-          <div className="review-row">
             <span className="review-label">NPI</span>
             <span className="review-value">
               {businessProfile.npiType === "type1"
@@ -227,7 +211,9 @@ export function ReviewStep() {
             <span className="review-value">
               {businessProfile.ss4File
                 ? "SS-4 form uploaded"
-                : businessProfile.ein || "\u2014"}
+                : businessProfile.ein
+                  ? displayEIN(businessProfile.ein)
+                  : "\u2014"}
             </span>
           </div>
         </div>
@@ -253,13 +239,15 @@ export function ReviewStep() {
           <div className="review-row">
             <span className="review-label">Business phone</span>
             <span className="review-value">
-              {businessProfile.businessPhone || "\u2014"}
+              {businessProfile.businessPhone
+                ? displayPhone(businessProfile.businessPhone)
+                : "\u2014"}
             </span>
           </div>
         </div>
       </div>
 
-      {leader && leader.name && (
+      {leader.name && (
         <div className="review-section">
           <h3 className="review-section-title">Control Person</h3>
           <div>
@@ -291,12 +279,20 @@ export function ReviewStep() {
         </div>
       )}
 
-      {beneficialOwners.length > 0 && (
+      {(controlPersonOwnsBusiness || beneficialOwners.length > 0) && (
         <div className="review-section">
           <h3 className="review-section-title">Beneficial Owners</h3>
           <div>
-            {beneficialOwners.map((owner, i) => (
-              <div key={i} className="review-row">
+            {controlPersonOwnsBusiness && leader.name && (
+              <div className="review-row">
+                <span className="review-label">{leader.name}</span>
+                <span className="review-value font-mono text-[13px]">
+                  {getMaskedSSN(leader.ssn)}
+                </span>
+              </div>
+            )}
+            {beneficialOwners.map((owner) => (
+              <div key={owner.id} className="review-row">
                 <span className="review-label">{owner.name || "Owner"}</span>
                 <span className="review-value font-mono text-[13px]">
                   {getMaskedSSN(owner.ssn)}

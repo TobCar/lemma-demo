@@ -3,7 +3,11 @@
 import { Input } from "@/components/ui/input";
 import { FormLabel } from "./FormLabel";
 import { FieldError } from "./FieldError";
-import { applyFormatter, type FormatterKey } from "@/lib/formatters";
+import {
+  applyFormatter,
+  digitOnlyFormats,
+  type FormatterKey,
+} from "@/lib/formatters";
 
 interface FormTextProps {
   label: string;
@@ -30,19 +34,34 @@ export function FormText({
   error,
   onBlur,
 }: FormTextProps) {
+  const digitOnly = format ? digitOnlyFormats[format] : undefined;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (digitOnly) return; // digit-only formats are handled via onKeyDown
     const raw = e.target.value;
     onChange(format ? applyFormatter(format, raw) : raw);
   };
 
+  const handleDigitKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!digitOnly) return;
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      if (value.length < digitOnly.maxDigits) {
+        onChange(value + e.key);
+      }
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      onChange(value.slice(0, -1));
+    }
+  };
+
   // maxLength accounts for formatting characters (dashes, parens, spaces)
-  // e.g. SSN "123-45-6789" = 9 digits + 2 dashes = 11 chars
   const maxLengthForFormat = (fmt: FormatterKey): number | undefined => {
     switch (fmt) {
       case "ssn":
-        return 11;
+        return 11; // censored display: •••-••-6789
       case "ein":
-        return 10;
+        return 10; // display: 12-3456789
       case "npi":
         return 10;
       case "phone":
@@ -60,6 +79,8 @@ export function FormText({
         ? ("numeric" as const)
         : undefined;
 
+  const displayValue = digitOnly ? digitOnly.display(value) : value;
+
   return (
     <div className="form-field">
       <FormLabel required={required}>{label}</FormLabel>
@@ -67,8 +88,9 @@ export function FormText({
         type={inputType}
         inputMode={resolvedInputMode}
         placeholder={placeholder}
-        value={value}
+        value={displayValue}
         onChange={handleChange}
+        onKeyDown={digitOnly ? handleDigitKeyDown : undefined}
         onBlur={onBlur}
         className={`form-input${format ? " masked-input" : ""}`}
         maxLength={format ? maxLengthForFormat(format) : undefined}
