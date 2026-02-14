@@ -253,7 +253,8 @@ export function OwnershipStep() {
           onCheckedChange={(checked) => setAllOwnersConfirmed(!!checked)}
         />
         <span>
-          I&apos;ve listed all individuals who own 25% or more of the company
+          I confirm that I&apos;ve listed all individuals who own 25% or more of
+          the company, or that no single individual owns 25% or more
         </span>
       </label>
 
@@ -267,7 +268,11 @@ export function OwnershipStep() {
           Back
         </Button>
         <div className="flex gap-3">
-          <Button onClick={() => setCurrentStep(5)} className="btn-primary">
+          <Button
+            onClick={() => setCurrentStep(5)}
+            className="btn-primary"
+            disabled={!allOwnersConfirmed}
+          >
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

@@ -10,12 +10,12 @@ import { z } from "zod";
 const createLegalEntitySchema = fieldsToSchema([
   ...profileFields,
   ...detailsOrgNpiField,
-  ...contactFields
+  ...contactFields,
 ]).extend({
   ipAddress: z.string().optional(),
   businessEmail: zodEmail.optional(),
   address: zodAddress.optional(),
-  ss4FileKey: z.string().optional()
+  ss4FileKey: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -49,8 +49,8 @@ export async function POST(request: Request) {
       entity_npi: body.practiceNpi,
       entity_website: body.url || null,
       entity_business_phone: body.businessPhone || null,
-      entity_naics_code: body.naicsCode || null
-    }
+      entity_naics_code: body.naicsCode || null,
+    },
   );
 
   if (entityError) {
@@ -59,7 +59,8 @@ export async function POST(request: Request) {
 
   const { error: termsError } = await supabase.from("term_acceptances").insert({
     legal_entity_id: entityId,
-    ip_address: body.ipAddress || null
+    tos_version: "included_all_25_pct_ownership_march_2026",
+    ip_address: body.ipAddress || null,
   });
 
   if (termsError) {

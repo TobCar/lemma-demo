@@ -2,14 +2,13 @@
 
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ORGANIZATION_TYPES } from "@/data/organizations";
 import { US_STATES } from "@/data/usStates";
 import { HEALTHCARE_NAICS_CODES, resolveNaicsCode } from "@/data/naicsCodes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { displayEIN, displayPhone } from "@/lib/formatters";
 import { ArrowLeft, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { CreateLegalEntityRequest } from "@/types/onboarding";
 import { uploadFile } from "@/lib/uploadFile";
 import { createClient } from "@/lib/supabase/client";
@@ -17,7 +16,6 @@ import { createClient } from "@/lib/supabase/client";
 export function ReviewStep() {
   const {
     formData,
-    updateIdentityVerification,
     setCurrentStep,
     setIsSubmitting,
     setIsComplete,
@@ -28,40 +26,24 @@ export function ReviewStep() {
     controlPerson,
     controlPersonOwnsBusiness,
     beneficialOwners,
-    identityVerification,
   } = formData;
-  const [termsAccepted, setTermsAccepted] = useState(
-    identityVerification.termsAccepted,
-  );
   const [error, setError] = useState<string | null>(null);
+  const ipAddressRef = useRef<string>("0.0.0.0");
 
   useEffect(() => {
     const fetchIP = async () => {
       try {
         const response = await fetch("https://api.ipify.org?format=json");
         const data = await response.json();
-        updateIdentityVerification({ termsIpAddress: data.ip });
+        ipAddressRef.current = data.ip;
       } catch {
-        updateIdentityVerification({ termsIpAddress: "0.0.0.0" });
+        // keep default
       }
     };
-    if (!identityVerification.termsIpAddress) {
-      fetchIP();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchIP();
   }, []);
 
-  const handleTermsChange = (checked: boolean) => {
-    setTermsAccepted(checked);
-    updateIdentityVerification({
-      termsAccepted: checked,
-      termsTimestamp: checked ? new Date().toISOString() : "",
-    });
-  };
-
   const handleSubmit = async () => {
-    if (!termsAccepted) return;
-
     setError(null);
     setIsSubmitting(true);
 
@@ -86,7 +68,7 @@ export function ReviewStep() {
         organizationType: orgType?.value ?? businessProfile.organizationType,
         practiceNpi: npi,
         naicsCode: resolveNaicsCode(businessProfile.naicsCode),
-        ipAddress: identityVerification.termsIpAddress,
+        ipAddress: ipAddressRef.current,
         ss4FileKey,
       };
 
@@ -303,23 +285,6 @@ export function ReviewStep() {
         </div>
       )}
 
-      <div className="pt-6 border-t border-border space-y-4">
-        <p className="text-[13px] text-muted-foreground leading-relaxed">
-          By clicking &quot;Create My Account&quot; you attest that you have
-          reviewed the documents, agree to the Electronic Signatures in Global
-          and National Commerce Act Disclosure, and consent to the Privacy
-          Policy and Fee Schedule.
-        </p>
-
-        <label className="checkbox-label">
-          <Checkbox
-            checked={termsAccepted}
-            onCheckedChange={handleTermsChange}
-          />
-          <span>I agree to the terms and conditions</span>
-        </label>
-      </div>
-
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -341,7 +306,7 @@ export function ReviewStep() {
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={!termsAccepted || isSubmitting}
+          disabled={isSubmitting}
           className="btn-primary"
         >
           {isSubmitting ? (
